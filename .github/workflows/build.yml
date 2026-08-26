@@ -318,11 +318,12 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p /tmp/apks
-          find all -maxdepth 1 -name '*.apk' -exec cp {} /tmp/apks/ \;
+          find all/assets -maxdepth 1 -name '*.apk' -exec cp {} /tmp/apks/ \; 2>/dev/null \
+            || find all -maxdepth 1 -name '*.apk' -exec cp {} /tmp/apks/ \;
           echo "apk count: $(ls /tmp/apks | wc -l)"
           ls /tmp/apks | head
-          echo "--- arch dirs (indexes + pub) ---"
-          find all -maxdepth 2 -type d | head -40
+          echo "--- stage arch dirs (indexes + pub) ---"
+          find all/stage -maxdepth 2 -type d 2>/dev/null | head -40 || find all -maxdepth 2 -type d ! -name assets | head -40
 
       - name: Upload apks to GitHub Release
         uses: softprops/action-gh-release@v2
@@ -335,11 +336,16 @@ jobs:
           files: /tmp/apks/*
           fail_on_unmatched_files: false
 
+      - name: Checkout gh-pages branch
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: site
+          persist-credentials: true
+
       - name: Assemble gh-pages (indexes + pubkey only)
         run: |
           set -euo pipefail
-          rm -rf site
-          git clone --depth 1 --branch gh-pages https://github.com/aseracorp/openwrt-packages.git site 2>/dev/null || mkdir site
           cd site
           for d in */; do
             case "$d" in
@@ -348,7 +354,7 @@ jobs:
             esac
           done
           cd ..
-          for arch in all/*/; do
+          for arch in all/stage/*/; do
             an="$(basename "$arch")"
             [ -f "$arch/packages.adb" ] || continue
             mkdir -p "site/$an"
