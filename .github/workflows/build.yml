@@ -61,7 +61,7 @@ concurrency:
 
 env:
   OPENWRT_RELEASE: 25.12.5
-  KEYID: 99e1cb28ae4fa8b3        # matches keys/99e1cb28ae4fa8b3.pub (EC P-256)
+  KEYID: aede713bafd53a86        # matches keys/aede713bafd53a86.pub (EC P-256)
   COSMOS_VERSION: ${{ inputs.cosmos_version || '0.23.0-unstable013' }}
   RELEASE_TAG: ${{ inputs.release_tag || 'feed-v1' }}
 

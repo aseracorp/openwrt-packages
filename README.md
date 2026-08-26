@@ -26,8 +26,8 @@ The repository is served from the `gh-pages` branch:
 ```sh
 # 1. Install the repository verification public key (required for trust)
 mkdir -p /etc/apk/keys
-wget -O /etc/apk/keys/99e1cb28ae4fa8b3.pub \
-  https://raw.githubusercontent.com/aseracorp/openwrt-packages/main/keys/99e1cb28ae4fa8b3.pub
+wget -O /etc/apk/keys/aede713bafd53a86.pub \
+  https://raw.githubusercontent.com/aseracorp/openwrt-packages/main/keys/aede713bafd53a86.pub
 
 # 2. Add the repository (URL must end in /packages.adb and match YOUR arch)
 echo "https://aseracorp.github.io/openwrt-packages/aarch64_cortex-a72/packages.adb" \
