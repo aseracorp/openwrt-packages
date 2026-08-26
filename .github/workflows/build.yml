@@ -1,27 +1,30 @@
 # Builds the aseracorp/openwrt-packages feed (SnapRAID + Cosmos Cloud) for
-# every supported OpenWrt architecture and publishes an apk-format package
-# repository to the `gh-pages` branch of this repo.
+# every supported OpenWrt architecture, signs the indexes, and publishes.
+#
+# Storage model (keeps gh-pages tiny, well under GitHub's 1GB site limit):
+#   * The large .apk binaries are uploaded to a GitHub Release as assets,
+#     named <name>_<version>_<arch>.apk.
+#   * Each per-architecture apk index (packages.adb) is generated with an
+#     ABSOLUTE pkgname-spec pointing at that release:
+#       https://github.com/aseracorp/openwrt-packages/releases/download/<TAG>/
+#           ${name}_${version}_${arch}.apk
+#     apk substitutes ${name}/${version}/${arch} and fetches the .apk straight
+#     from the release, so the gh-pages branch only holds the tiny index +
+#     public key (~1KB per arch) - no package blobs in git.
 #
 # Two packages are built in each SDK job:
-#   * snapraid    – compiled from source (same recipe as snapraid-openwrt).
-#   * cosmoscloud – re-packaged from the official prebuilt release archives
-#                   (statically-linked Go binaries + web assets). Only builds
-#                   on architectures for which a prebuilt Cosmos Cloud archive
-#                   exists (amd64, arm64, 386, armv6, armv7, riscv64). The
-#                   matrix field `cosmos` selects the prebuilt suffix; when
-#                   empty the job builds snapraid only.
+#   * snapraid    - compiled from source.
+#   * cosmoscloud - re-packaged from the official prebuilt archives (Go
+#                   statically-linked + web assets). Only builds on archs with
+#                   a prebuilt archive (amd64, arm64, 386, armv6, armv7,
+#                   riscv64); matrix field `cosmos` selects the prebuilt suffix,
+#                   empty => snapraid only.
 #
-# Each job assembles a per-architecture apk repo dir (<arch>/) containing
-# packages.adb (index), its signature, the .apk files and the public key; the
-# publish job pushes all of them to gh-pages.
-#
-# Package signing:
-#   Generate an OpenWrt usign keypair once and commit the public key:
-#       usign -G -s private.key -p keys/<KEYID>.pub
-#   - Commit `keys/<KEYID>.pub` to this repo and set KEYID below.
-#   - Store the private key as the repo secret APK_SIGNING_KEY (base64).
-#   If the secret is absent, packages are published UNSIGNED; users then add
-#   the repo with `--allow-untrusted` (see README.md).
+# Signing (OpenWrt apk uses an EC P-256 key, NOT usign):
+#   openssl ecparam -name prime256v1 -genkey -noout -out private.key
+#   openssl ec -in private.key -pubout > <KEYID>.pub
+#   KEYID = first 16 hex chars of SHA-512 of the SEC1 uncompressed EC point
+#   (0x04||X||Y). Store base64(private.key) as repo secret APK_SIGNING_KEY.
 
 name: Build & publish
 
@@ -35,9 +38,13 @@ on:
         type: boolean
         default: false
       cosmos_version:
-        description: 'Cosmos Cloud release to package (e.g. 0.23.0-unstable013)'
+        description: 'Cosmos Cloud release to package'
         type: string
         default: '0.23.0-unstable013'
+      release_tag:
+        description: 'GitHub release tag the index will point at'
+        type: string
+        default: 'feed-v1'
   push:
     branches: [ main ]
     paths:
@@ -54,9 +61,9 @@ concurrency:
 
 env:
   OPENWRT_RELEASE: 25.12.5
-  KEYID: ff0bac95b162418a        # matches keys/ff0bac95b162418a.pub (usign/ed25519)
-  APK_SIGNING_KEY: ${{ secrets.APK_SIGNING_KEY }}
+  KEYID: 99e1cb28ae4fa8b3        # matches keys/99e1cb28ae4fa8b3.pub (EC P-256)
   COSMOS_VERSION: ${{ inputs.cosmos_version || '0.23.0-unstable013' }}
+  RELEASE_TAG: ${{ inputs.release_tag || 'feed-v1' }}
 
 jobs:
   build:
@@ -119,7 +126,7 @@ jobs:
           - sdk_target: d1/generic
             id: d1
             cosmos: riscv64
-          # --- snapraid-only architectures (no prebuilt Cosmos binary) ---
+          # --- snapraid-only (no prebuilt Cosmos binary) ---
           - sdk_target: at91/sam9x
             id: at91_sam9x
           - sdk_target: ramips/mt7621
@@ -166,7 +173,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
             build-essential file libncurses-dev zlib1g-dev gawk gettext \
-            libssl-dev xsltproc rsync wget unzip zstd python3 jq curl bzip2 patch
+            libssl-dev xsltproc rsync wget unzip zstd python3 jq curl bzip2 patch openssl
 
       - name: Cache OpenWrt SDK (${{ matrix.sdk_target }})
         id: cache-sdk
@@ -175,19 +182,19 @@ jobs:
           path: /tmp/sdk.tar.zst
           key: openwrt-sdk-${{ env.OPENWRT_RELEASE }}-${{ matrix.sdk_target }}
 
-      - name: Download & extract OpenWrt SDK (${{ matrix.sdk_target }})
+      - name: Download & extract OpenWrt SDK
         run: |
           set -euo pipefail
           if [ ! -f /tmp/sdk.tar.zst ]; then
             BASE="https://downloads.openwrt.org/releases/${OPENWRT_RELEASE}/targets/${{ matrix.sdk_target }}/"
             SDK="$(curl -fsSL "$BASE" | grep -oE 'openwrt-sdk-[^"]*\.tar\.zst' | grep -v sha256 | head -1)"
-            [ -n "$SDK" ] || { echo "ERROR: no SDK found for target ${{ matrix.sdk_target }}"; exit 1; }
+            [ -n "$SDK" ] || { echo "ERROR: no SDK for ${{ matrix.sdk_target }}"; exit 1; }
             curl -fsSL "$BASE/$SDK" -o /tmp/sdk.tar.zst
           fi
           mkdir -p sdk
           tar --zstd -xf /tmp/sdk.tar.zst -C sdk --strip-components=1
 
-      - name: Install packages into SDK
+      - name: Install packages & key into SDK
         run: |
           set -euo pipefail
           mkdir -p sdk/package/snapraid
@@ -196,101 +203,157 @@ jobs:
           cp -r feed/package/cosmoscloud sdk/package/cosmoscloud
           echo "CONFIG_PACKAGE_snapraid=y" > sdk/.config
           echo "CONFIG_PACKAGE_cosmoscloud=m" >> sdk/.config
+          echo "CONFIG_SIGNED_PACKAGES=y" >> sdk/.config
           if [ -n "${APK_SIGNING_KEY:-}" ]; then
             echo "$APK_SIGNING_KEY" | base64 -d > sdk/private-key.pem
             chmod 600 sdk/private-key.pem
+            openssl ec -in sdk/private-key.pem -pubout -out sdk/public-key.pem 2>/dev/null || true
           fi
 
       - name: Build snapraid
         run: |
           cd sdk
           make defconfig >/dev/null 2>&1
-          make package/snapraid/compile 2>&1 | tail -30
+          make package/snapraid/compile 2>&1 | tail -20
 
-      - name: Fetch & stage Cosmos Cloud prebuilt (${{ matrix.cosmos }})
+      - name: Fetch & stage Cosmos prebuilt (${{ matrix.cosmos }})
         if: ${{ matrix.cosmos != '' }}
         run: |
           set -euo pipefail
           SUFFIX="${{ matrix.cosmos }}"
           VER="${{ env.COSMOS_VERSION }}"
-          RELEASE="v${VER}"
           case "$SUFFIX" in
             amd64|arm64) REPO="aseracorp/Cosmos-Server" ;;
             *)           REPO="aseracorp/Cosmos-Server-legacyArchs" ;;
           esac
           ZIP="cosmos-cloud-${VER}-${SUFFIX}.zip"
-          curl -fL "https://github.com/${REPO}/releases/download/${RELEASE}/${ZIP}" -o "/tmp/${ZIP}"
-          curl -fL "https://github.com/${REPO}/releases/download/${RELEASE}/${ZIP}.md5" -o "/tmp/${ZIP}.md5"
+          curl -fL "https://github.com/${REPO}/releases/download/v${VER}/${ZIP}" -o "/tmp/${ZIP}"
+          curl -fL "https://github.com/${REPO}/releases/download/v${VER}/${ZIP}.md5" -o "/tmp/${ZIP}.md5"
           ( cd /tmp && md5sum -c "${ZIP}.md5" )
           rm -rf /tmp/cosmos-x && mkdir -p /tmp/cosmos-x sdk/package/cosmoscloud/prebuilt
           unzip -o "/tmp/${ZIP}" -d /tmp/cosmos-x >/dev/null
           SRC="$(find /tmp/cosmos-x -mindepth 1 -maxdepth 1 -type d | head -1)"
           cp -a "$SRC"/. sdk/package/cosmoscloud/prebuilt/
           chmod +x sdk/package/cosmoscloud/prebuilt/cosmos 2>/dev/null || true
-          echo "Staged Cosmos Cloud ($SUFFIX) from $REPO @ $RELEASE"
 
       - name: Build cosmoscloud
         if: ${{ matrix.cosmos != '' }}
         run: |
           cd sdk
-          make package/cosmoscloud/compile 2>&1 | tail -30
+          make package/cosmoscloud/compile 2>&1 | tail -20
 
-      - name: Generate package index
-        run: |
-          cd sdk
-          make package/index 2>&1 | tail -10
-
-      - name: Determine arch, sign & stage repo
+      - name: Collect, rename apks & generate signed index
+        id: idx
         run: |
           set -euo pipefail
           cd sdk
-          ARCH="$(ls bin/packages | head -1)"
-          echo "Architecture: $ARCH"
-          REPODIR="bin/packages/$ARCH/base"
-          rm -rf /tmp/stage && mkdir -p "/tmp/stage/$ARCH"
-          cp "$REPODIR/packages.adb" "/tmp/stage/$ARCH/" 2>/dev/null || true
-          cp "$REPODIR"/packages.adb.sig "/tmp/stage/$ARCH/" 2>/dev/null || true
-          cp "$REPODIR"/*.apk "/tmp/stage/$ARCH/" 2>/dev/null || true
-          cp ../feed/keys/${{ env.KEYID }}.pub "/tmp/stage/$ARCH/"
-          ls -la "/tmp/stage/$ARCH/"
+          ARCHARCH="$(ls bin/packages | head -1)"
+          REPODIR="bin/packages/$ARCHARCH/base"
+          echo "Architecture: $ARCHARCH"
+          rm -rf /tmp/assets && mkdir -p /tmp/assets
+          for f in "$REPODIR"/*.apk; do
+            [ -f "$f" ] || continue
+            base=$(basename "$f")
+            case "$base" in
+              cosmoscloud-*) name=cosmoscloud ;;
+              snapraid-*)    name=snapraid ;;
+              *) continue ;;
+            esac
+            ver="${base#$name-}"; ver="${ver%.apk}"
+            cp "$f" "/tmp/assets/${name}_${ver}_${ARCHARCH}.apk"
+          done
+          echo "assets:"; ls -la /tmp/assets
+          echo "ARCHARCH=$ARCHARCH" >> "$GITHUB_OUTPUT"
 
-      - name: Upload arch repo
+      - name: Run apk mkndx with absolute pkgname-spec (+sign)
+        run: |
+          set -euo pipefail
+          ARCHARCH="${{ steps.idx.outputs.ARCHARCH }}"
+          cd "sdk/bin/packages/$ARCHARCH/base"
+          APKPATH="../../../../staging_dir/host/bin/apk"
+          ROOT="../../../../"
+          RELEASE_TAG="${{ env.RELEASE_TAG }}"
+          SPEC="https://github.com/aseracorp/openwrt-packages/releases/download/$RELEASE_TAG/\${name}_\${version}_\${arch}.apk"
+          echo "generating signed index for $ARCHARCH ..."
+          rm -f packages.adb
+          if [ -n "${APK_SIGNING_KEY:-}" ] && [ -f "$ROOT/private-key.pem" ]; then
+            "$APKPATH" mkndx --root "$ROOT" --allow-untrusted \
+              --sign "$ROOT/private-key.pem" \
+              --pkgname-spec "$SPEC" --output packages.adb /tmp/assets/*.apk 2>&1 | tail -8
+          else
+            "$APKPATH" mkndx --root "$ROOT" --allow-untrusted \
+              --pkgname-spec "$SPEC" --output packages.adb /tmp/assets/*.apk 2>&1 | tail -8
+          fi
+          ls -la packages.adb
+
+      - name: Stage index + pubkey for gh-pages
+        run: |
+          set -euo pipefail
+          ARCHARCH="${{ steps.idx.outputs.ARCHARCH }}"
+          rm -rf /tmp/stage && mkdir -p "/tmp/stage/$ARCHARCH"
+          cp "$GITHUB_WORKSPACE/sdk/bin/packages/$ARCHARCH/base/packages.adb" "/tmp/stage/$ARCHARCH/"
+          cp "$GITHUB_WORKSPACE/feed/keys/${{ env.KEYID }}.pub" "/tmp/stage/$ARCHARCH/"
+          ls -la "/tmp/stage/$ARCHARCH/"
+
+      - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: repo-${{ matrix.id }}
-          path: /tmp/stage/
+          name: out-${{ matrix.id }}
+          path: |
+            /tmp/assets/
+            /tmp/stage/
           if-no-files-found: error
 
   publish:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout gh-pages
-        uses: actions/checkout@v4
-        with:
-          ref: gh-pages
-          path: site
-
-      - name: Download all arch repos
+      - name: Download all artifacts (merged)
         uses: actions/download-artifact@v4
         with:
-          path: pkgs
+          path: all
+          merge-multiple: true
 
-      - name: Assemble + commit repo tree
+      - name: Collect apks & verify
         run: |
           set -euo pipefail
+          mkdir -p /tmp/apks
+          find /tmp/all -maxdepth 1 -name '*.apk' -exec cp {} /tmp/apks/ \;
+          echo "apk count: $(ls /tmp/apks | wc -l)"
+          ls /tmp/apks | head
+          echo "--- non-apk files (indexes + pub) ---"
+          find /tmp/all -maxdepth 2 -type f ! -name '*.apk' | head -40
+
+      - name: Upload apks to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.RELEASE_TAG }}
+          name: "openwrt-packages feed (${{ env.RELEASE_TAG }})"
+          body: |
+            Prebuilt OpenWrt apk packages for SnapRAID + Cosmos Cloud.
+            Index: https://aseracorp.github.io/openwrt-packages/<arch>/packages.adb
+          files: /tmp/apks/*
+          fail_on_unmatched_files: false
+
+      - name: Assemble gh-pages (indexes + pubkey only)
+        run: |
+          set -euo pipefail
+          rm -rf site
+          git clone --depth 1 --branch gh-pages https://github.com/aseracorp/openwrt-packages.git site 2>/dev/null || mkdir site
           cd site
-          git checkout gh-pages 2>/dev/null || git checkout -b gh-pages
           for d in */; do
             case "$d" in
-              README.md|latest-*) continue ;;
+              index.html|latest-cosmos|*.md) continue ;;
               */) rm -rf "$d" ;;
             esac
           done
           cd ..
-          for d in pkgs/*/; do
-            [ -d "$d" ] || continue
-            cp -r "$d"/. site/
+          for arch in /tmp/all/*/; do
+            an="$(basename "$arch")"
+            [ -f "$arch/packages.adb" ] || continue
+            mkdir -p "site/$an"
+            cp "$arch/packages.adb" "site/$an/"
+            cp "$arch"/*.pub "site/$an/" 2>/dev/null || true
           done
           echo "${{ env.COSMOS_VERSION }}" > site/latest-cosmos
           cd site
@@ -298,9 +361,9 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
           if ! git diff --cached --quiet; then
-            git commit -m "Publish openwrt-packages feed (snapraid + cosmoscloud)"
+            git commit -q -m "Publish feed indexes (${{ env.RELEASE_TAG }})"
             git push origin gh-pages
-            echo "pushed"
+            echo "gh-pages pushed"
           else
-            echo "no changes to publish"
+            echo "no change"
           fi

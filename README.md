@@ -26,8 +26,8 @@ The repository is served from the `gh-pages` branch:
 ```sh
 # 1. Install the repository verification public key (required for trust)
 mkdir -p /etc/apk/keys
-wget -O /etc/apk/keys/ff0bac95b162418a.pub \
-  https://raw.githubusercontent.com/aseracorp/openwrt-packages/main/keys/ff0bac95b162418a.pub
+wget -O /etc/apk/keys/99e1cb28ae4fa8b3.pub \
+  https://raw.githubusercontent.com/aseracorp/openwrt-packages/main/keys/99e1cb28ae4fa8b3.pub
 
 # 2. Add the repository (URL must end in /packages.adb and match YOUR arch)
 echo "https://aseracorp.github.io/openwrt-packages/aarch64_cortex-a72/packages.adb" \
@@ -125,22 +125,37 @@ make package/snapraid/compile package/cosmoscloud/compile
 - Builds SnapRAID from source and repackages Cosmos Cloud from its prebuilt
   archives, for every supported architecture, with the matching OpenWrt
   **25.12.5** SDK.
-- Assembles an apk repo per architecture and pushes it to `gh-pages`, together
-  with the `latest-cosmos` version marker.
-- Cosmos version is configurable via `workflow_dispatch` (default
-  `0.23.0-unstable013`).
+- **Storage split (keeps gh-pages tiny):**
+  - The large `.apk` binaries are uploaded to a GitHub **Release**
+    (`https://github.com/aseracorp/openwrt-packages/releases/download/<tag>/`),
+    one asset per package+arch: `<name>_<version>_<arch>.apk`.
+  - The per-architecture index `packages.adb` (just a few KB) is generated with
+    an **absolute pkgname-spec** pointing at that release, so `apk` fetches the
+    packages straight from the release. Only the tiny index + public key are
+    committed to `gh-pages` — no package blobs live in the git repo.
+- The whole feed is **signed** (apk EC P-256), so installs verify without
+  `--allow-untrusted`.
+- Cosmos version and the release tag are configurable via `workflow_dispatch`
+  (defaults `0.23.0-unstable013` / `feed-v1`).
 
-### Setting up package signing
+### Setting up package signing (OpenWrt apk uses an **EC P-256** key, not usign)
 
 ```sh
-usign -G -s private.key -p keys/<KEYID>.pub   # create a keypair once
-base64 < private.key                          # value for the repo secret
+openssl ecparam -name prime256v1 -genkey -noout -out private.key
+openssl ec -in private.key -pubout > <KEYID>.pub   # commit as keys/<KEYID>.pub
+```
+`KEYID` = the first 16 hex characters of the SHA-512 of the SEC1 uncompressed
+EC public point (`0x04||X||Y`). Derive it with:
+```sh
+openssl pkey -pubin -in <KEYID>.pub -pubout -outform DER | \
+  tail -c 65 | openssl dgst -sha512 | head -c 16
 ```
 1. Commit `keys/<KEYID>.pub`.
-2. Add the base64 private key as the repo secret **`APK_SIGNING_KEY`**.
-3. Set `KEYID` in the workflow `env`.
+2. Set `KEYID` in the workflow `env` (already configured).
+3. Add `base64 private.key` as the repo secret **`APK_SIGNING_KEY`**.
 
-Until a signing key is configured, packages are published unsigned.
+When the secret is present, the SDK signs each index (`apk mkndx --sign`);
+otherwise packages are published unsigned (install with `--allow-untrusted`).
 
 ---
 
