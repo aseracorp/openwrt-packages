@@ -276,16 +276,18 @@ jobs:
           SPEC="https://github.com/aseracorp/openwrt-packages/releases/download/$RELEASE_TAG/\${name}_\${version}_\${arch}.apk"
           echo "generating signed index for $ARCHARCH ..."
           rm -f packages.adb
-          # Decode the signing key fresh from the secret so the SDK's build
-          # never substitutes a different/regenerated key for the committed one.
+          # Use an EMPTY --root so mkndx does NOT auto-load the SDK's own
+          # (possibly regenerated) private-key.pem from the SDK keys-dir; only
+          # the explicitly-passed --sign key is used.
+          rm -rf /tmp/emptyroot && mkdir -p /tmp/emptyroot
           if [ -n "${APK_SIGNING_KEY:-}" ]; then
             echo "$APK_SIGNING_KEY" | base64 -d > /tmp/sign-key.pem
             chmod 600 /tmp/sign-key.pem
-            "$APKPATH" mkndx --root "$ROOT" --allow-untrusted \
+            "$APKPATH" mkndx --root /tmp/emptyroot --allow-untrusted \
               --sign /tmp/sign-key.pem \
               --pkgname-spec "$SPEC" --output packages.adb /tmp/assets/*.apk 2>&1 | tail -8
           else
-            "$APKPATH" mkndx --root "$ROOT" --allow-untrusted \
+            "$APKPATH" mkndx --root /tmp/emptyroot --allow-untrusted \
               --pkgname-spec "$SPEC" --output packages.adb /tmp/assets/*.apk 2>&1 | tail -8
           fi
           ls -la packages.adb
