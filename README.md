@@ -15,8 +15,18 @@ OpenWrt architecture** and published automatically as an **apk package repositor
 
 ## Add the repo & trust key (OpenWrt 25.1+, apk)
 
-The repository is served from the `gh-pages` branch:
-`https://aseracorp.github.io/openwrt-packages/<arch>/packages.adb`
+The repository is served from the `gh-pages` branch. Like official OpenWrt,
+**each OpenWrt release version is kept as its own release + gh-pages version
+directory** (older versions stay online at their own URLs):
+
+- Versioned feed: `https://aseracorp.github.io/openwrt-packages/<version>/<arch>/packages.adb`
+  (e.g. `.../25.12.5/x86_64/packages.adb`)
+- Default "latest" alias (always the newest build):
+  `https://aseracorp.github.io/openwrt-packages/<arch>/packages.adb`
+
+`<version>` is the OpenWrt release (default `25.12.5`); `<arch>` is the device
+package architecture. The large `.apk` files are stored on the matching GitHub
+release: `https://github.com/aseracorp/openwrt-packages/releases/download/<version>/…`
 
 `<arch>` is your device's OpenWrt package architecture (e.g. `aarch64_cortex-a72`,
 `x86_64`, `mipsel_24kc`, ...). Find it with `apk arch` or the fw-selector.

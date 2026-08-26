@@ -42,9 +42,9 @@ on:
         type: string
         default: '0.23.0-unstable013'
       release_tag:
-        description: 'GitHub release tag the index will point at'
+        description: 'OpenWrt release version used as the GitHub release tag & gh-pages version dir'
         type: string
-        default: 'feed-v1'
+        default: '25.12.5'
   push:
     branches: [ main ]
     paths:
@@ -63,7 +63,7 @@ env:
   OPENWRT_RELEASE: 25.12.5
   KEYID: aede713bafd53a86        # matches keys/aede713bafd53a86.pub (EC P-256)
   COSMOS_VERSION: ${{ inputs.cosmos_version || '0.23.0-unstable013' }}
-  RELEASE_TAG: ${{ inputs.release_tag || 'feed-v1' }}
+  RELEASE_TAG: ${{ inputs.release_tag || '25.12.5' }}
 
 jobs:
   build:
@@ -368,21 +368,27 @@ jobs:
         run: |
           set -euo pipefail
           cd site
-          for d in */; do
-            case "$d" in
-              index.html|latest-cosmos|*.md) continue ;;
-              */) rm -rf "$d" ;;
-            esac
-          done
+          # Remove only this version's arch dirs so other retained version
+          # releases (e.g. an older 24.10.x) stay available on gh-pages.
+          VER="${{ env.RELEASE_TAG }}"
+          if [ -d "$VER" ]; then rm -rf "$VER"; fi
+          mkdir -p "$VER"
           cd ..
           for arch in all/stage/*/; do
             an="$(basename "$arch")"
             [ -f "$arch/packages.adb" ] || continue
+            mkdir -p "site/$VER/$an"
+            cp "$arch/packages.adb" "site/$VER/$an/"
+            cp "$arch"/*.pub "site/$VER/$an/" 2>/dev/null || true
+            # Mirror the current version as the default "latest" feed at the
+            # repo root so a stable URL /<arch>/packages.adb keeps working.
             mkdir -p "site/$an"
             cp "$arch/packages.adb" "site/$an/"
             cp "$arch"/*.pub "site/$an/" 2>/dev/null || true
           done
           echo "${{ env.COSMOS_VERSION }}" > site/latest-cosmos
+          # keep a per-version marker for convenience
+          echo "${{ env.COSMOS_VERSION }}" > "site/$VER/cosmos-version"
           cd site
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
