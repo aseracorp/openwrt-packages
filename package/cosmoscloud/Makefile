@@ -66,9 +66,11 @@ define Package/cosmoscloud
   # linked, so no libc/soname deps - these are the tools it invokes at runtime:
   #   bash, curl, yq, coreutils, util-linux (mount/lsblk/umount), parted,
   #   mdadm, iptables (iptables-save), fuse3-utils (fusermount), zstd.
-  # Optional feature commands (docker, dockerd, tailscale, samba, snapraid,
-  # restic) are intentionally NOT hard deps; install them when those features
-  # are used.
+  # Feature deps (docker/dockerd for managed apps, samba4-server for shares,
+  # snapraid for parity) are pulled in as hard deps so the whole expected
+  # Cosmos runtime comes with the package. mergerfs is NOT available in the
+  # OpenWrt package repo, so it cannot be a dependency. tailscale/restic are
+  # optional extras not hard-depended.
   DEPENDS:=+bash +curl +yq +coreutils +util-linux +parted +mdadm +iptables +fuse3-utils +zstd \
 	+docker +dockerd +samba4-server +snapraid
 endef
