@@ -69,7 +69,8 @@ define Package/cosmoscloud
   # Optional feature commands (docker, dockerd, tailscale, samba, snapraid,
   # restic) are intentionally NOT hard deps; install them when those features
   # are used.
-  DEPENDS:=+bash +curl +yq +coreutils +util-linux +parted +mdadm +iptables +fuse3-utils +zstd
+  DEPENDS:=+bash +curl +yq +coreutils +util-linux +parted +mdadm +iptables +fuse3-utils +zstd \
+	+docker +dockerd +samba4-server +snapraid
 endef
 
 define Package/cosmoscloud/description
