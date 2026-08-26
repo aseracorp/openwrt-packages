@@ -318,11 +318,11 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p /tmp/apks
-          find /tmp/all -maxdepth 1 -name '*.apk' -exec cp {} /tmp/apks/ \;
+          find all -maxdepth 1 -name '*.apk' -exec cp {} /tmp/apks/ \;
           echo "apk count: $(ls /tmp/apks | wc -l)"
           ls /tmp/apks | head
-          echo "--- non-apk files (indexes + pub) ---"
-          find /tmp/all -maxdepth 2 -type f ! -name '*.apk' | head -40
+          echo "--- arch dirs (indexes + pub) ---"
+          find all -maxdepth 2 -type d | head -40
 
       - name: Upload apks to GitHub Release
         uses: softprops/action-gh-release@v2
@@ -348,7 +348,7 @@ jobs:
             esac
           done
           cd ..
-          for arch in /tmp/all/*/; do
+          for arch in all/*/; do
             an="$(basename "$arch")"
             [ -f "$arch/packages.adb" ] || continue
             mkdir -p "site/$an"
