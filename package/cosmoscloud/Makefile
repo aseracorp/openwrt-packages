@@ -93,7 +93,7 @@ define Package/cosmoscloud/install
 	$(INSTALL_DIR) $(1)/opt/cosmos
 	cp -a $(COSMOS_SRC)/. $(1)/opt/cosmos/
 	$(INSTALL_DIR) $(1)/etc/init.d
-	$(INSTALL_BIN) ./files/etc/init.d/cosmoscloud $(1)/etc/init.d/cosmoscloud
+	$(INSTALL_BIN) ./files/etc/init.d/CosmosCloud $(1)/etc/init.d/CosmosCloud
 	$(INSTALL_DIR) $(1)/etc/cosmos
 	touch $(1)/etc/cosmos/.env
 	touch $(1)/etc/cosmos/config.txt

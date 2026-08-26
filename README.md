@@ -71,8 +71,8 @@ architectures that have an official archive:
 ```sh
 apk add cosmoscloud
 # service
-/etc/init.d/cosmoscloud enable
-/etc/init.d/cosmoscloud start
+/etc/init.d/CosmosCloud enable
+/etc/init.d/CosmosCloud start
 ```
 
 Cosmos Cloud stores its config in `/etc/cosmos/` (set via `COSMOS_CONFIG_FOLDER`).
