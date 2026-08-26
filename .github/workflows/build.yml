@@ -1,0 +1,306 @@
+# Builds the aseracorp/openwrt-packages feed (SnapRAID + Cosmos Cloud) for
+# every supported OpenWrt architecture and publishes an apk-format package
+# repository to the `gh-pages` branch of this repo.
+#
+# Two packages are built in each SDK job:
+#   * snapraid    – compiled from source (same recipe as snapraid-openwrt).
+#   * cosmoscloud – re-packaged from the official prebuilt release archives
+#                   (statically-linked Go binaries + web assets). Only builds
+#                   on architectures for which a prebuilt Cosmos Cloud archive
+#                   exists (amd64, arm64, 386, armv6, armv7, riscv64). The
+#                   matrix field `cosmos` selects the prebuilt suffix; when
+#                   empty the job builds snapraid only.
+#
+# Each job assembles a per-architecture apk repo dir (<arch>/) containing
+# packages.adb (index), its signature, the .apk files and the public key; the
+# publish job pushes all of them to gh-pages.
+#
+# Package signing:
+#   Generate an OpenWrt usign keypair once and commit the public key:
+#       usign -G -s private.key -p keys/<KEYID>.pub
+#   - Commit `keys/<KEYID>.pub` to this repo and set KEYID below.
+#   - Store the private key as the repo secret APK_SIGNING_KEY (base64).
+#   If the secret is absent, packages are published UNSIGNED; users then add
+#   the repo with `--allow-untrusted` (see README.md).
+
+name: Build & publish
+
+on:
+  schedule:
+    - cron: '45 3 * * *'
+  workflow_dispatch:
+    inputs:
+      force:
+        description: 'Rebuild all packages'
+        type: boolean
+        default: false
+      cosmos_version:
+        description: 'Cosmos Cloud release to package (e.g. 0.23.0-unstable013)'
+        type: string
+        default: '0.23.0-unstable013'
+  push:
+    branches: [ main ]
+    paths:
+      - 'package/**'
+      - '.github/workflows/**'
+      - 'keys/**'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: openwrt-packages-build
+  cancel-in-progress: true
+
+env:
+  OPENWRT_RELEASE: 25.12.5
+  KEYID: ff0bac95b162418a        # matches keys/ff0bac95b162418a.pub (usign/ed25519)
+  APK_SIGNING_KEY: ${{ secrets.APK_SIGNING_KEY }}
+  COSMOS_VERSION: ${{ inputs.cosmos_version || '0.23.0-unstable013' }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - sdk_target: x86/64
+            id: x86_64
+            cosmos: amd64
+          - sdk_target: x86/generic
+            id: x86_generic
+            cosmos: "386"
+          - sdk_target: x86/legacy
+            id: x86_legacy
+            cosmos: "386"
+          - sdk_target: armsr/armv8
+            id: armsr_armv8
+            cosmos: arm64
+          - sdk_target: mediatek/filogic
+            id: mtk_filogic
+            cosmos: arm64
+          - sdk_target: bcm27xx/bcm2711
+            id: bcm2711
+            cosmos: arm64
+          - sdk_target: bcm27xx/bcm2712
+            id: bcm2712
+            cosmos: arm64
+          - sdk_target: bcm27xx/bcm2708
+            id: bcm2708
+            cosmos: armv6
+          - sdk_target: mediatek/mt7629
+            id: mt7629
+            cosmos: armv7
+          - sdk_target: ipq806x/generic
+            id: ipq806x
+            cosmos: armv7
+          - sdk_target: ipq40xx/generic
+            id: ipq40xx
+            cosmos: armv7
+          - sdk_target: sunxi/cortexa8
+            id: sunxi_a8
+            cosmos: armv7
+          - sdk_target: bcm53xx/generic
+            id: bcm53xx
+            cosmos: armv7
+          - sdk_target: mvebu/cortexa9
+            id: mvebu_a9
+            cosmos: armv7
+          - sdk_target: at91/sama5
+            id: at91_sama5
+            cosmos: armv7
+          - sdk_target: at91/sama7
+            id: at91_sama7
+            cosmos: armv7
+          - sdk_target: zynq/generic
+            id: zynq
+            cosmos: armv7
+          - sdk_target: d1/generic
+            id: d1
+            cosmos: riscv64
+          # --- snapraid-only architectures (no prebuilt Cosmos binary) ---
+          - sdk_target: at91/sam9x
+            id: at91_sam9x
+          - sdk_target: ramips/mt7621
+            id: mt7621
+          - sdk_target: ath79/generic
+            id: ath79
+          - sdk_target: bmips/bcm6328
+            id: bcm6328
+          - sdk_target: bcm47xx/mips74k
+            id: bcm47xx_74k
+          - sdk_target: bcm47xx/generic
+            id: bcm47xx
+          - sdk_target: pistachio/generic
+            id: pistachio
+          - sdk_target: octeon/generic
+            id: octeon
+          - sdk_target: malta/be64
+            id: malta_be64
+          - sdk_target: malta/le64
+            id: malta_le64
+          - sdk_target: loongarch64/generic
+            id: loongarch64
+          - sdk_target: mpc85xx/p2020
+            id: mpc85xx_p2020
+          - sdk_target: qoriq/generic
+            id: qoriq
+          - sdk_target: apm821xx/nand
+            id: apm821xx
+          - sdk_target: gemini/generic
+            id: gemini
+          - sdk_target: kirkwood/generic
+            id: kirkwood
+          - sdk_target: ixp4xx/generic
+            id: ixp4xx
+
+    steps:
+      - name: Checkout feed
+        uses: actions/checkout@v4
+        with:
+          path: feed
+
+      - name: Install host build deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential file libncurses-dev zlib1g-dev gawk gettext \
+            libssl-dev xsltproc rsync wget unzip zstd python3 jq curl bzip2 patch
+
+      - name: Cache OpenWrt SDK (${{ matrix.sdk_target }})
+        id: cache-sdk
+        uses: actions/cache@v4
+        with:
+          path: /tmp/sdk.tar.zst
+          key: openwrt-sdk-${{ env.OPENWRT_RELEASE }}-${{ matrix.sdk_target }}
+
+      - name: Download & extract OpenWrt SDK (${{ matrix.sdk_target }})
+        run: |
+          set -euo pipefail
+          if [ ! -f /tmp/sdk.tar.zst ]; then
+            BASE="https://downloads.openwrt.org/releases/${OPENWRT_RELEASE}/targets/${{ matrix.sdk_target }}/"
+            SDK="$(curl -fsSL "$BASE" | grep -oE 'openwrt-sdk-[^"]*\.tar\.zst' | grep -v sha256 | head -1)"
+            [ -n "$SDK" ] || { echo "ERROR: no SDK found for target ${{ matrix.sdk_target }}"; exit 1; }
+            curl -fsSL "$BASE/$SDK" -o /tmp/sdk.tar.zst
+          fi
+          mkdir -p sdk
+          tar --zstd -xf /tmp/sdk.tar.zst -C sdk --strip-components=1
+
+      - name: Install packages into SDK
+        run: |
+          set -euo pipefail
+          mkdir -p sdk/package/snapraid
+          cp feed/package/snapraid/Makefile sdk/package/snapraid/Makefile
+          rm -rf sdk/package/cosmoscloud
+          cp -r feed/package/cosmoscloud sdk/package/cosmoscloud
+          echo "CONFIG_PACKAGE_snapraid=y" > sdk/.config
+          echo "CONFIG_PACKAGE_cosmoscloud=m" >> sdk/.config
+          if [ -n "${APK_SIGNING_KEY:-}" ]; then
+            echo "$APK_SIGNING_KEY" | base64 -d > sdk/private-key.pem
+            chmod 600 sdk/private-key.pem
+          fi
+
+      - name: Build snapraid
+        run: |
+          cd sdk
+          make defconfig >/dev/null 2>&1
+          make package/snapraid/compile 2>&1 | tail -30
+
+      - name: Fetch & stage Cosmos Cloud prebuilt (${{ matrix.cosmos }})
+        if: ${{ matrix.cosmos != '' }}
+        run: |
+          set -euo pipefail
+          SUFFIX="${{ matrix.cosmos }}"
+          VER="${{ env.COSMOS_VERSION }}"
+          RELEASE="v${VER}"
+          case "$SUFFIX" in
+            amd64|arm64) REPO="aseracorp/Cosmos-Server" ;;
+            *)           REPO="aseracorp/Cosmos-Server-legacyArchs" ;;
+          esac
+          ZIP="cosmos-cloud-${VER}-${SUFFIX}.zip"
+          curl -fL "https://github.com/${REPO}/releases/download/${RELEASE}/${ZIP}" -o "/tmp/${ZIP}"
+          curl -fL "https://github.com/${REPO}/releases/download/${RELEASE}/${ZIP}.md5" -o "/tmp/${ZIP}.md5"
+          ( cd /tmp && md5sum -c "${ZIP}.md5" )
+          rm -rf /tmp/cosmos-x && mkdir -p /tmp/cosmos-x sdk/package/cosmoscloud/prebuilt
+          unzip -o "/tmp/${ZIP}" -d /tmp/cosmos-x >/dev/null
+          SRC="$(find /tmp/cosmos-x -mindepth 1 -maxdepth 1 -type d | head -1)"
+          cp -a "$SRC"/. sdk/package/cosmoscloud/prebuilt/
+          chmod +x sdk/package/cosmoscloud/prebuilt/cosmos 2>/dev/null || true
+          echo "Staged Cosmos Cloud ($SUFFIX) from $REPO @ $RELEASE"
+
+      - name: Build cosmoscloud
+        if: ${{ matrix.cosmos != '' }}
+        run: |
+          cd sdk
+          make package/cosmoscloud/compile 2>&1 | tail -30
+
+      - name: Generate package index
+        run: |
+          cd sdk
+          make package/index 2>&1 | tail -10
+
+      - name: Determine arch, sign & stage repo
+        run: |
+          set -euo pipefail
+          cd sdk
+          ARCH="$(ls bin/packages | head -1)"
+          echo "Architecture: $ARCH"
+          REPODIR="bin/packages/$ARCH/base"
+          rm -rf /tmp/stage && mkdir -p "/tmp/stage/$ARCH"
+          cp "$REPODIR/packages.adb" "/tmp/stage/$ARCH/" 2>/dev/null || true
+          cp "$REPODIR"/packages.adb.sig "/tmp/stage/$ARCH/" 2>/dev/null || true
+          cp "$REPODIR"/*.apk "/tmp/stage/$ARCH/" 2>/dev/null || true
+          cp feed/keys/${{ env.KEYID }}.pub "/tmp/stage/$ARCH/"
+          ls -la "/tmp/stage/$ARCH/"
+
+      - name: Upload arch repo
+        uses: actions/upload-artifact@v4
+        with:
+          name: repo-${{ matrix.id }}
+          path: /tmp/stage/
+          if-no-files-found: error
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout gh-pages
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: site
+
+      - name: Download all arch repos
+        uses: actions/download-artifact@v4
+        with:
+          path: pkgs
+
+      - name: Assemble + commit repo tree
+        run: |
+          set -euo pipefail
+          cd site
+          git checkout gh-pages 2>/dev/null || git checkout -b gh-pages
+          for d in */; do
+            case "$d" in
+              README.md|latest-*) continue ;;
+              */) rm -rf "$d" ;;
+            esac
+          done
+          cd ..
+          for d in pkgs/*/; do
+            [ -d "$d" ] || continue
+            cp -r "$d"/. site/
+          done
+          echo "${{ env.COSMOS_VERSION }}" > site/latest-cosmos
+          cd site
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if ! git diff --cached --quiet; then
+            git commit -m "Publish openwrt-packages feed (snapraid + cosmoscloud)"
+            git push origin gh-pages
+            echo "pushed"
+          else
+            echo "no changes to publish"
+          fi
