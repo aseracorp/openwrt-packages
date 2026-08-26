@@ -73,7 +73,7 @@ define Package/cosmoscloud
   # OpenWrt package repo, so it cannot be a dependency. tailscale/restic are
   # optional extras not hard-depended.
   DEPENDS:=+bash +curl +yq +coreutils +util-linux +parted +mdadm +iptables +fuse3-utils +zstd \
-	+docker +dockerd +samba4-server +snapraid +avahi-nodbus-daemon
+	+docker +dockerd +samba4-server +snapraid +avahi-nodbus-daemon +findutils-xargs
 endef
 
 define Package/cosmoscloud/description
