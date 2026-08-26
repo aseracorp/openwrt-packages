@@ -338,7 +338,8 @@ jobs:
           name: "openwrt-packages feed (${{ env.RELEASE_TAG }})"
           body: |
             Prebuilt OpenWrt apk packages for SnapRAID + Cosmos Cloud.
-            Index: https://aseracorp.github.io/openwrt-packages/<arch>/packages.adb
+            Per-architecture index: https://aseracorp.github.io/openwrt-packages/<arch>/packages.adb
+            (e.g. x86_64: https://aseracorp.github.io/openwrt-packages/x86_64/packages.adb )
           files: /tmp/apks/*
           fail_on_unmatched_files: false
 
