@@ -331,6 +331,20 @@ jobs:
           echo "--- stage arch dirs (indexes + pub) ---"
           find all/stage -maxdepth 2 -type d 2>/dev/null | head -40 || find all -maxdepth 2 -type d ! -name assets | head -40
 
+      - name: Purge stale apk assets from release (keep only current version)
+        run: |
+          set -euo pipefail
+          # Match the official OpenWrt model: within a release only the current
+          # build is served, so remove any previously-uploaded .apk assets for
+          # this release tag before publishing the freshly-built ones. Old
+          # versions are intentionally NOT kept in the live release.
+          TAG="${{ env.RELEASE_TAG }}"
+          for id in $(gh api "repos/aseracorp/openwrt-packages/releases/tags/$TAG" \
+            -q '.assets[] | select(.name|endswith(".apk")) | .id' 2>/dev/null); do
+            echo "deleting stale asset id=$id"
+            gh api -X DELETE "repos/aseracorp/openwrt-packages/releases/assets/$id" >/dev/null 2>&1 || true
+          done
+
       - name: Upload apks to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
