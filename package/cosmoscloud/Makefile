@@ -61,7 +61,15 @@ define Package/cosmoscloud
   CATEGORY:=Network
   TITLE:=Cosmos Cloud — self-hosted home server secure gateway (prebuilt)
   URL:=https://cosmos-cloud.io/
-  DEPENDS:=+bash +coreutils
+  # Runtime deps = external commands the static Cosmos daemon shells out to
+  # (see azukaar/Cosmos-Server source, exec.* calls). Binaries are statically
+  # linked, so no libc/soname deps - these are the tools it invokes at runtime:
+  #   bash, curl, yq, coreutils, util-linux (mount/lsblk/umount), parted,
+  #   mdadm, iptables (iptables-save), fuse3-utils (fusermount), zstd.
+  # Optional feature commands (docker, dockerd, tailscale, samba, snapraid,
+  # restic) are intentionally NOT hard deps; install them when those features
+  # are used.
+  DEPENDS:=+bash +curl +yq +coreutils +util-linux +parted +mdadm +iptables +fuse3-utils +zstd
 endef
 
 define Package/cosmoscloud/description
