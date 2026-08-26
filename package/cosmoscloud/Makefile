@@ -64,7 +64,8 @@ define Package/cosmoscloud
   # Runtime deps = external commands the static Cosmos daemon shells out to
   # (see azukaar/Cosmos-Server source, exec.* calls). Binaries are statically
   # linked, so no libc/soname deps - these are the tools it invokes at runtime:
-  #   bash, curl, yq, coreutils, util-linux (mount/lsblk/umount), parted,
+  #   bash, curl, yq, coreutils-df (GNU df for disk stats; other coreutils are
+  #   covered by busybox), util-linux (mount/lsblk/umount), parted,
   #   mdadm, iptables (iptables-save), fuse3-utils (fusermount), zstd.
   # Feature deps (docker/dockerd for managed apps, samba4-server for shares,
   # snapraid for parity, avahi-nodbus-daemon for mDNS/discovery) are pulled
@@ -72,7 +73,7 @@ define Package/cosmoscloud
   # Cosmos runtime comes with the package. mergerfs is NOT available in the
   # OpenWrt package repo, so it cannot be a dependency. tailscale/restic are
   # optional extras not hard-depended.
-  DEPENDS:=+bash +curl +yq +coreutils +util-linux +parted +mdadm +iptables +fuse3-utils +zstd \
+  DEPENDS:=+bash +curl +yq +coreutils-df +util-linux +parted +mdadm +iptables +fuse3-utils +zstd \
 	+docker +dockerd +samba4-server +snapraid +avahi-nodbus-daemon +findutils-xargs
 endef
 
