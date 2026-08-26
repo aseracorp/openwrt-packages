@@ -251,7 +251,7 @@ jobs:
           cp "$REPODIR/packages.adb" "/tmp/stage/$ARCH/" 2>/dev/null || true
           cp "$REPODIR"/packages.adb.sig "/tmp/stage/$ARCH/" 2>/dev/null || true
           cp "$REPODIR"/*.apk "/tmp/stage/$ARCH/" 2>/dev/null || true
-          cp feed/keys/${{ env.KEYID }}.pub "/tmp/stage/$ARCH/"
+          cp ../feed/keys/${{ env.KEYID }}.pub "/tmp/stage/$ARCH/"
           ls -la "/tmp/stage/$ARCH/"
 
       - name: Upload arch repo
