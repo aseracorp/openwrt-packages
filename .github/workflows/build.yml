@@ -56,7 +56,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: openwrt-packages-build
+  group: openwrt-feed-v2
   cancel-in-progress: true
 
 env:
