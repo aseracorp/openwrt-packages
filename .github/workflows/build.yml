@@ -283,6 +283,14 @@ jobs:
           if [ -n "${APK_SIGNING_KEY:-}" ]; then
             echo "$APK_SIGNING_KEY" | base64 -d > /tmp/sign-key.pem
             chmod 600 /tmp/sign-key.pem
+            # Guard: verify the decoded signing key really is the committed key.
+            # Fails loudly instead of silently publishing an index that apk
+            # would report as UNTRUSTED.
+            GOT="$(openssl ec -in /tmp/sign-key.pem -pubout 2>/dev/null | openssl pkey -pubin -in /dev/stdin -pubout -outform DER 2>/dev/null | tail -c 65 | openssl dgst -sha512 2>/dev/null | awk '{print $2}' | cut -c1-16)"
+            if [ "$GOT" != "${{ env.KEYID }}" ]; then
+              echo "ERROR: decoded APK_SIGNING_KEY keyid=$GOT does not match committed KEYID=${{ env.KEYID }}"
+              exit 1
+            fi
             "$APKPATH" mkndx --root /tmp/emptyroot --allow-untrusted \
               --sign /tmp/sign-key.pem \
               --pkgname-spec "$SPEC" --output packages.adb /tmp/assets/*.apk 2>&1 | tail -8
