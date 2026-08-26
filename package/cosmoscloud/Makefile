@@ -18,7 +18,11 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=cosmoscloud
-PKG_VERSION:=0.23.0-unstable013
+# apk requires apk-valid version strings (the upstream '-unstable013' suffix
+# is invalid), so PKG_VERSION uses the broad release number. The exact
+# prebuilt archive (e.g. 0.23.0-unstable013) is selected by the CI workflow's
+# COSMOS_VERSION env var, independent of this field.
+PKG_VERSION:=0.23.0
 PKG_RELEASE:=1
 
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
@@ -74,7 +78,7 @@ endef
 
 define Package/cosmoscloud/install
 	$(INSTALL_DIR) $(1)/opt/cosmos
-	cp -a $(PKG_BUILD_DIR)/. $(1)/opt/cosmos/
+	cp -a $(COSMOS_SRC)/. $(1)/opt/cosmos/
 	$(INSTALL_DIR) $(1)/etc/init.d
 	$(INSTALL_BIN) ./files/etc/init.d/cosmoscloud $(1)/etc/init.d/cosmoscloud
 	$(INSTALL_DIR) $(1)/etc/cosmos
