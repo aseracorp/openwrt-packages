@@ -67,12 +67,13 @@ define Package/cosmoscloud
   #   bash, curl, yq, coreutils, util-linux (mount/lsblk/umount), parted,
   #   mdadm, iptables (iptables-save), fuse3-utils (fusermount), zstd.
   # Feature deps (docker/dockerd for managed apps, samba4-server for shares,
-  # snapraid for parity) are pulled in as hard deps so the whole expected
+  # snapraid for parity, avahi-nodbus-daemon for mDNS/discovery) are pulled
+  # in as hard deps so the expected
   # Cosmos runtime comes with the package. mergerfs is NOT available in the
   # OpenWrt package repo, so it cannot be a dependency. tailscale/restic are
   # optional extras not hard-depended.
   DEPENDS:=+bash +curl +yq +coreutils +util-linux +parted +mdadm +iptables +fuse3-utils +zstd \
-	+docker +dockerd +samba4-server +snapraid
+	+docker +dockerd +samba4-server +snapraid +avahi-nodbus-daemon
 endef
 
 define Package/cosmoscloud/description
