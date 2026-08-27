@@ -73,8 +73,12 @@ define Package/cosmoscloud
   # Cosmos runtime comes with the package. mergerfs is NOT available in the
   # OpenWrt package repo, so it cannot be a dependency. tailscale/restic are
   # optional extras not hard-depended.
+  # mergerfs is a conditional dep: only pulled in on architectures where we
+  # actually build a mergerfs package (CONFIG_PACKAGE_mergerfs), since no
+  # prebuilt static binary exists for every arch.
   DEPENDS:=+bash +curl +yq +coreutils-df +util-linux +parted +mdadm +iptables +fuse3-utils +zstd \
-	+docker +dockerd +samba4-server +snapraid +avahi-nodbus-daemon +findutils-xargs
+	+docker +dockerd +samba4-server +snapraid +avahi-nodbus-daemon +findutils-xargs \
+	$(if $(CONFIG_PACKAGE_mergerfs),+mergerfs)
 endef
 
 define Package/cosmoscloud/description

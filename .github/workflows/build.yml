@@ -64,6 +64,7 @@ env:
   KEYID: aede713bafd53a86        # matches keys/aede713bafd53a86.pub (EC P-256)
   COSMOS_VERSION: ${{ inputs.cosmos_version || '0.23.0-unstable013' }}
   RELEASE_TAG: ${{ inputs.release_tag || '25.12.5' }}
+  MERGERFS_VERSION: 2.42.0
 
 jobs:
   build:
@@ -75,57 +76,74 @@ jobs:
           - sdk_target: x86/64
             id: x86_64
             cosmos: amd64
+            mergerfs: amd64
           - sdk_target: x86/generic
             id: x86_generic
             cosmos: "386"
+            mergerfs: i386
           - sdk_target: x86/legacy
             id: x86_legacy
             cosmos: "386"
+            mergerfs: i386
           - sdk_target: armsr/armv8
             id: armsr_armv8
             cosmos: arm64
+            mergerfs: arm64
           - sdk_target: mediatek/filogic
             id: mtk_filogic
             cosmos: arm64
+            mergerfs: arm64
           - sdk_target: bcm27xx/bcm2711
             id: bcm2711
             cosmos: arm64
+            mergerfs: arm64
           - sdk_target: bcm27xx/bcm2712
             id: bcm2712
             cosmos: arm64
+            mergerfs: arm64
           - sdk_target: bcm27xx/bcm2708
             id: bcm2708
             cosmos: armv6
           - sdk_target: mediatek/mt7629
             id: mt7629
             cosmos: armv7
+            mergerfs: armhf
           - sdk_target: ipq806x/generic
             id: ipq806x
             cosmos: armv7
+            mergerfs: armhf
           - sdk_target: ipq40xx/generic
             id: ipq40xx
             cosmos: armv7
+            mergerfs: armhf
           - sdk_target: sunxi/cortexa8
             id: sunxi_a8
             cosmos: armv7
+            mergerfs: armhf
           - sdk_target: bcm53xx/generic
             id: bcm53xx
             cosmos: armv7
+            mergerfs: armhf
           - sdk_target: mvebu/cortexa9
             id: mvebu_a9
             cosmos: armv7
+            mergerfs: armhf
           - sdk_target: at91/sama5
             id: at91_sama5
             cosmos: armv7
+            mergerfs: armhf
           - sdk_target: at91/sama7
             id: at91_sama7
             cosmos: armv7
+            mergerfs: armhf
           - sdk_target: zynq/generic
             id: zynq
             cosmos: armv7
+            mergerfs: armhf
           - sdk_target: d1/generic
             id: d1
             cosmos: riscv64
+            mergerfs: riscv64
           # --- snapraid-only (no prebuilt Cosmos binary) ---
           - sdk_target: at91/sam9x
             id: at91_sam9x
@@ -201,8 +219,15 @@ jobs:
           cp feed/package/snapraid/Makefile sdk/package/snapraid/Makefile
           rm -rf sdk/package/cosmoscloud
           cp -r feed/package/cosmoscloud sdk/package/cosmoscloud
+          if [ -n "${{ matrix.mergerfs }}" ]; then
+            rm -rf sdk/package/mergerfs
+            cp -r feed/package/mergerfs sdk/package/mergerfs
+          fi
           echo "CONFIG_PACKAGE_snapraid=y" > sdk/.config
           echo "CONFIG_PACKAGE_cosmoscloud=m" >> sdk/.config
+          if [ -n "${{ matrix.mergerfs }}" ]; then
+            echo "CONFIG_PACKAGE_mergerfs=y" >> sdk/.config
+          fi
           echo "CONFIG_SIGNED_PACKAGES=y" >> sdk/.config
           if [ -n "${APK_SIGNING_KEY:-}" ]; then
             echo "$APK_SIGNING_KEY" | base64 -d > sdk/private-key.pem
@@ -215,6 +240,28 @@ jobs:
           cd sdk
           make defconfig >/dev/null 2>&1
           make package/snapraid/compile 2>&1 | tail -20
+
+      - name: Fetch & stage mergerfs prebuilt (${{ matrix.mergerfs }})
+        if: ${{ matrix.mergerfs != '' }}
+        run: |
+          set -euo pipefail
+          SUF="${{ matrix.mergerfs }}"
+          VER="${{ env.MERGERFS_VERSION }}"
+          TGZ="mergerfs-${VER}-static-linux_${SUF}.tar.gz"
+          curl -fL "https://github.com/trapexit/mergerfs/releases/download/${VER}/${TGZ}" -o "/tmp/${TGZ}"
+          rm -rf /tmp/mf-x && mkdir -p /tmp/mf-x sdk/package/mergerfs/prebuilt
+          tar xzf "/tmp/${TGZ}" -C /tmp/mf-x
+          # Use the pgk files under usr/local/sbin structure from the tarball.
+          cp -a /tmp/mf-x/usr sdk/package/mergerfs/prebuilt/
+          cp -a /tmp/mf-x/sbin sdk/package/mergerfs/prebuilt/ 2>/dev/null || true
+          # The Makefile expects prebuilt/ with usr/local/bin/mergerfs present.
+          chmod +x sdk/package/mergerfs/prebuilt/usr/local/bin/mergerfs 2>/dev/null || true
+
+      - name: Build mergerfs
+        if: ${{ matrix.mergerfs != '' }}
+        run: |
+          cd sdk
+          make package/mergerfs/compile 2>&1 | tail -20
 
       - name: Fetch & stage Cosmos prebuilt (${{ matrix.cosmos }})
         if: ${{ matrix.cosmos != '' }}
@@ -257,6 +304,7 @@ jobs:
             case "$base" in
               cosmoscloud-*) name=cosmoscloud ;;
               snapraid-*)    name=snapraid ;;
+              mergerfs-*)    name=mergerfs ;;
               *) continue ;;
             esac
             ver="${base#$name-}"; ver="${ver%.apk}"
