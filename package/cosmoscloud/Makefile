@@ -67,17 +67,16 @@ define Package/cosmoscloud
   #   bash, curl, yq, coreutils-df (GNU df for disk stats; other coreutils are
   #   covered by busybox), util-linux (mount/lsblk/umount), parted,
   #   mdadm, iptables (iptables-save), fuse3-utils (fusermount), zstd.
-  # Feature deps (docker/dockerd for managed apps, samba4-server for shares,
-  # snapraid for parity, avahi-nodbus-daemon for mDNS/discovery) are pulled
-  # in as hard deps so the expected
-  # Cosmos runtime comes with the package. mergerfs is NOT available in the
-  # OpenWrt package repo, so it cannot be a dependency. tailscale/restic are
-  # optional extras not hard-depended.
-  # mergerfs is a conditional dep: only pulled in on architectures where we
-  # actually build a mergerfs package (CONFIG_PACKAGE_mergerfs), since no
-  # prebuilt static binary exists for every arch.
+  # Feature deps: docker/dockerd (managed apps), samba4-server (shares),
+  # avahi-nodbus-daemon (mDNS/discovery), findutils-xargs (constellation).
+  # snapraid and mergerfs are CONDITIONAL deps: they are pulled in only on
+  # architectures where that package is actually built for the arch
+  # (CONFIG_PACKAGE_snapraid / CONFIG_PACKAGE_mergerfs), so the Cosmos package
+  # does not force an uninstallable dependency where no matching arch package
+  # exists. tailscale/restic remain optional extras (not hard deps).
   DEPENDS:=+bash +curl +yq +coreutils-df +util-linux +parted +mdadm +iptables +fuse3-utils +zstd \
-	+docker +dockerd +samba4-server +snapraid +avahi-nodbus-daemon +findutils-xargs \
+	+docker +dockerd +samba4-server +avahi-nodbus-daemon +findutils-xargs \
+	$(if $(CONFIG_PACKAGE_snapraid),+snapraid) \
 	$(if $(CONFIG_PACKAGE_mergerfs),+mergerfs)
 endef
 

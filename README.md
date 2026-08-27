@@ -1,13 +1,19 @@
-# OpenWrt Packages — SnapRAID & Cosmos Cloud
+# OpenWrt Packages — Cosmos Cloud (SnapRAID & mergerfs support packages)
 
-Prebuilt **[SnapRAID](https://www.snapraid.it/)** and **[Cosmos Cloud](https://cosmos-cloud.io/)**
-OpenWrt packages (release 25.12.5), cross-compiled / assembled for **every supported
-OpenWrt architecture** and published automatically as an **apk package repository**.
+Prebuilt **[Cosmos Cloud](https://cosmos-cloud.io/)** OpenWrt package — the
+**primary application** — plus the **SnapRAID** and **mergerfs** support
+packages it depends on, for release 25.12.5. Assembled / cross-compiled for
+**every supported OpenWrt architecture** and published automatically as an
+**apk package repository**.
 
-- ⚙️ SnapRAID is built from source with the official OpenWrt SDK (musl libc).
-- ☁️ Cosmos Cloud is shipped from its **official prebuilt binaries**
-  (statically-linked Go) + web assets — for the architectures the upstream
-  publishes (amd64, arm64, 386, armv6, armv7, riscv64).
+- ☁️ **Cosmos Cloud** — the main self-hosted server / secure gateway app,
+  shipped from its **official prebuilt binaries** (statically-linked Go) + web
+  assets, for the architectures upstream publishes (amd64, arm64, 386, armv6,
+  armv7, riscv64).
+- ⚙️ **SnapRAID** — built from source with the OpenWrt SDK; pulled in as a
+  Cosmos dependency on archs where it's built.
+- 🔗 **mergerfs** — union filesystem, repackaged from prebuilt static binaries;
+  pulled in as a Cosmos dependency on archs where it's built.
 - 🗂️ apk format (OpenWrt **25.1+**); one directory per architecture.
 - 🤖 Auto-built & re-published on push / schedule / manual dispatch.
 
@@ -43,9 +49,10 @@ wget -O /etc/apk/keys/aede713bafd53a86.pub \
 echo "https://aseracorp.github.io/openwrt-packages/aarch64_cortex-a72/packages.adb" \
   > /etc/apk/repositories.d/customfeeds.list
 
-# 3. Refresh the index and install
+# 3. Refresh the index and install Cosmos Cloud (pulls in snapraid & mergerfs
+#    automatically where built for your arch)
 apk update
-apk add snapraid cosmoscloud
+apk add cosmoscloud
 ```
 
 > **Important:** include the trailing `/packages.adb` and use your exact
@@ -56,15 +63,7 @@ apk add snapraid cosmoscloud
 
 ## Packages
 
-### SnapRAID (`snapraid`)
-Prebuilt 14.9 for every OpenWrt architecture, includes man pages.
-
-```sh
-apk add snapraid
-snapraid --version
-```
-
-### Cosmos Cloud (`cosmoscloud`)
+### Cosmos Cloud (`cosmoscloud`) — primary
 
 Prebuilt Cosmos Cloud (statically-linked Go binaries + web assets) for the
 architectures that have an official archive:
@@ -89,9 +88,54 @@ Cosmos Cloud stores its config in `/etc/cosmos/` (set via `COSMOS_CONFIG_FOLDER`
 The runtime tree (binaries `cosmos`, `cosmos-launcher`, `nebula`, `restic`, web
 assets, GeoLite DB) is installed under `/opt/cosmos/`.
 
+#### Cosmos Cloud dependencies
+
+`cosmoscloud` depends on the runtime tools it shells out to (bash, curl, yq,
+docker/dockerd, samba4-server, avahi-nodbus-daemon for mDNS, and coreutils/disk
+utils). It also pulls in two **support packages** of this repo as **conditional
+dependencies** — only on architectures where a matching package is built:
+
+- **`mergerfs`** — installed automatically when a mergerfs package exists for
+  your arch.
+- **`snapraid`** — installed automatically when a snapraid package exists for
+  your arch.
+
+So a single `apk add cosmoscloud` brings in all three where available.
+
 > The mips/mipsel/powerpc/loongarch/etc architectures have **no** upstream
-> prebuilt Cosmos Cloud binary, so they ship SnapRAID only (the build matrix
-> simply doesn't package cosmoscloud for them).
+> prebuilt Cosmos Cloud binary, so they are not part of the Cosmos feed.
+
+---
+
+### SnapRAID (`snapraid`) — dependency / standalone
+
+Prebuilt **14.9** for **every** OpenWrt architecture (the widest coverage),
+includes man pages. Normally installed automatically as a Cosmos dependency; it
+can also be installed standalone where its features (parity) are needed:
+
+```sh
+apk add snapraid
+snapraid --version
+```
+
+---
+
+### mergerfs (`mergerfs`) — dependency / standalone
+
+Prebuilt **2.42.0** (static binaries) for the architectures that have an
+official static build: amd64 (`x86_64`), i386 (`i386_pentium*`), arm64
+(`aarch64_*`), armhf (`arm_cortex-a7/-a9/-a15`), riscv64 (`riscv64_generic`).
+Normally a Cosmos dependency; can be installed standalone for a FUSE merged
+mount:
+
+```sh
+apk add mergerfs
+mergerfs --version
+```
+
+Installs `/usr/sbin/mergerfs`, `/usr/bin/mergerfs-fusermount`,
+`/usr/sbin/mount.mergerfs`, and the man page. (The Linux `fuse` kernel module is
+needed to actually mount.)
 
 ---
 
@@ -118,23 +162,23 @@ src-git packages https://github.com/aseracorp/openwrt-packages.git
 
 ```sh
 ./scripts/feeds update -a
-./scripts/feeds install snapraid cosmoscloud
-make menuconfig     # select Network > cosmoscloud, Utilities > snapraid
-make package/snapraid/compile package/cosmoscloud/compile
+./scripts/feeds install cosmoscloud snapraid mergerfs
+make menuconfig     # select Network > cosmoscloud, Utilities > snapraid/mergerfs
+make package/cosmoscloud/compile package/snapraid/compile package/mergerfs/compile
 ```
 
-> `cosmoscloud` requires the prebuilt release archive to be present at
-> `package/cosmoscloud/prebuilt/` before compiling — the CI workflow fetches it
-> automatically.
+> `cosmoscloud` and `mergerfs` require their prebuilt release archives present
+> under `package/<name>/prebuilt/` before compiling — the CI workflow fetches
+> them automatically.
 
 ---
 
 ## CI / release workflow
 
 `.github/workflows/build.yml`:
-- Builds SnapRAID from source and repackages Cosmos Cloud from its prebuilt
-  archives, for every supported architecture, with the matching OpenWrt
-  **25.12.5** SDK.
+- Repackages Cosmos Cloud (prebuilt) and mergerfs (prebuilt static binaries)
+  and builds SnapRAID from source, for every supported architecture, with the
+  matching OpenWrt **25.12.5** SDK.
 - **Storage split (keeps gh-pages tiny):**
   - The large `.apk` binaries are uploaded to a GitHub **Release**
     (`https://github.com/aseracorp/openwrt-packages/releases/download/<tag>/`),
@@ -145,8 +189,8 @@ make package/snapraid/compile package/cosmoscloud/compile
     committed to `gh-pages` — no package blobs live in the git repo.
 - The whole feed is **signed** (apk EC P-256), so installs verify without
   `--allow-untrusted`.
-- Cosmos version and the release tag are configurable via `workflow_dispatch`
-  (defaults `0.23.0-unstable013` / `feed-v1`).
+- Cosmos version and the release tag (OpenWrt version) are configurable via
+  `workflow_dispatch` (defaults `0.23.0-unstable013` / `25.12.5`).
 
 ### Setting up package signing (OpenWrt apk uses an **EC P-256** key, not usign)
 
@@ -171,6 +215,7 @@ otherwise packages are published unsigned (install with `--allow-untrusted`).
 
 ## License
 
-- SnapRAID: GPL-3.0-or-later (© Andrea Mazzoleni, https://www.snapraid.it/)
 - Cosmos Cloud: Apache-2.0 with Commons Clause (© azukaar / Cosmos)
+- SnapRAID: GPL-3.0-or-later (© Andrea Mazzoleni, https://www.snapraid.it/)
+- mergerfs: GPL-3.0-or-later (© Antonio SJ Musumeci, https://github.com/trapexit/mergerfs)
 - This OpenWrt feed packaging: GPL-2.0 (OpenWrt standard)
