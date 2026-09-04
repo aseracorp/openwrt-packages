@@ -49,20 +49,25 @@ jobs:
         with:
           path: feed
 
-      # The `apk` indexer lives in the OpenWrt SDK's host staging dir. Rather
-      # than download a whole SDK per publish, fetch the standalone apk-tools
-      # static binary (the same one OpenWrt SDKs ship) into /usr/local/bin.
-      - name: Install apk-tools (for mkndx)
+      # The `apk` indexer (apk mkndx) ships inside the OpenWrt SDK's host
+      # staging dir. Fetch the SDK (cached by the shared action) just for that
+      # host binary — the same tool the build workflows used to sign.
+      - name: OpenWrt SDK setup (for apk mkndx)
+        uses: ./feed/.github/actions/openwrt-sdk
+        with:
+          openwrt_release: ${{ env.OPENWRT_RELEASE }}
+          sdk_target: x86/64
+
+      - name: Use SDK host apk for indexing
         run: |
           set -euo pipefail
-          curl -fsSL "https://gitlab.alpinelinux.org/api/v4/projects/5/packages/generic/apk-tools/v2.14.4/x86_64/apk.static" -o /tmp/apk.static || true
-          if [ ! -s /tmp/apk.static ]; then
-            echo "static apk download failed; will try to grab from an SDK in build step"
-          else
-            chmod +x /tmp/apk.static
-            sudo cp /tmp/apk.static /usr/local/bin/apk
+          SDK_APK="$GITHUB_WORKSPACE/sdk/staging_dir/host/bin/apk"
+          if [ ! -x "$SDK_APK" ]; then
+            echo "ERROR: no host apk in SDK ($SDK_APK)" >&2
+            exit 1
           fi
-          apk --version 2>/dev/null || true
+          sudo cp "$SDK_APK" /usr/local/bin/apk
+          apk --version
 
       - name: Download latest apks from all three build workflows
         run: |
@@ -70,14 +75,14 @@ jobs:
           mkdir -p /tmp/all-apks
           for WF in build-cosmoscloud.yml build-snapraid.yml build-mergerfs.yml; do
             echo "=== $WF ==="
-            RUN_ID="$(gh run list --workflow "$WF" --json databaseId,status,conclusion --limit 10 --jq '[.[] | select(.status=="completed" and .conclusion=="success")][0].databaseId')"
+            RUN_ID="$(gh run list --workflow "$WF" -R "${{ github.repository }}" --json databaseId,status,conclusion --limit 10 --jq '[.[] | select(.status=="completed" and .conclusion=="success")][0].databaseId')"
             if [ -z "$RUN_ID" ] || [ "$RUN_ID" = "null" ]; then
               echo "  no successful run found — skipping (keeps existing apks for this pkg)"
               continue
             fi
             echo "  downloading from run $RUN_ID"
             rm -rf /tmp/dl && mkdir -p /tmp/dl
-            gh run download "$RUN_ID" -D /tmp/dl >/dev/null 2>&1 || { echo "  download failed"; continue; }
+            gh run download "$RUN_ID" -D /tmp/dl -R "${{ github.repository }}" >/dev/null 2>&1 || { echo "  download failed"; continue; }
             find /tmp/dl -type f -name '*.apk' -exec cp -n {} /tmp/all-apks/ \; || true
           done
           echo "=== final apk set ($(ls /tmp/all-apks | wc -l) files) ==="
