@@ -1,0 +1,252 @@
+# =============================================================================
+# version-check.yml — upstream version watch + failed-build retry
+# =============================================================================
+# Watches the upstream projects that feed aseracorp/openwrt-packages and
+# (re)triggers per-package builds:
+#
+#   * If a package's upstream has a newer release than what versions.json
+#     records, bump versions.json (+ Makefile PKG_VERSION / PKG_HASH where
+#     applicable) and push to main. The push lands under package/<pkg>/** so
+#     the matching build-<pkg>.yml workflow starts automatically.
+#
+#   * If versions.json records the last build of a package as failed,
+#     re-trigger that package's build by pushing a retry marker (only if we
+#     haven't already retried recently — 2h backoff — to avoid retry storms).
+#
+# No schedule for the *build* workflows — builds only happen:
+#   - when this checker pushes an updated package dir, or
+#   - on a direct push to package/<pkg>/** (manual/PR), or
+#   - via manual workflow_dispatch.
+# =============================================================================
+
+name: Upstream version check
+
+on:
+  schedule:
+    # Every 4 hours; upstreams publish rarely, this is plenty.
+    - cron: '17 */4 * * *'
+  workflow_dispatch:
+    inputs:
+      force:
+        description: 'Re-check all packages and re-trigger any that are new or failed'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: version-check
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    outputs:
+      triggered: ${{ steps.cmp.outputs.triggered }}
+      summary: ${{ steps.cmp.outputs.summary }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Query upstream latest versions
+        id: upstream
+        run: |
+          set -euo pipefail
+          python3 - <<'EOF'
+          import json, urllib.request, os
+
+          def gh(url):
+              req = urllib.request.Request(url, headers={
+                  'Accept': 'application/vnd.github+json',
+                  'User-Agent': 'openwrt-feed-versioncheck',
+              })
+              tok = os.environ.get('GH_TOKEN')
+              if tok:
+                  req.add_header('Authorization', f'Bearer {tok}')
+              with urllib.request.urlopen(req, timeout=30) as r:
+                  return json.load(r)
+
+          # Cosmos Cloud: latest *stable* release on azukaar/Cosmos-Server.
+          rel = gh('https://api.github.com/repos/azukaar/Cosmos-Server/releases/latest')
+          cosmos = rel['tag_name'].lstrip('v')
+          print(f'cosmos latest: {cosmos}')
+
+          # SnapRAID: latest release.
+          rel = gh('https://api.github.com/repos/amadvance/snapraid/releases/latest')
+          snap = rel['tag_name'].lstrip('v')
+          print(f'snapraid latest: {snap}')
+
+          # mergerfs: latest release (tags have no 'v' prefix).
+          rel = gh('https://api.github.com/repos/trapexit/mergerfs/releases/latest')
+          mfs = rel['tag_name'].lstrip('v')
+          print(f'mergerfs latest: {mfs}')
+
+          with open('upstream_versions.json', 'w') as f:
+              json.dump({'cosmoscloud': cosmos, 'snapraid': snap, 'mergerfs': mfs}, f)
+          EOF
+          cat upstream_versions.json
+
+      - name: Compare & decide triggers
+        id: cmp
+        run: |
+          set -euo pipefail
+          python3 - <<'EOF'
+          import json, datetime, os, re
+
+          with open('versions.json') as f: cur = json.load(f)
+          with open('upstream_versions.json') as f: up = json.load(f)
+
+          triggered = []
+          bump = []
+          summary = []
+
+          now = datetime.datetime.now(datetime.timezone.utc).isoformat()
+          FORCE = os.environ.get('FORCE') == 'true'
+
+          def want_retry(pkg, status, last_attempt):
+              if status != 'failed':
+                  return False
+              if not last_attempt:
+                  return True
+              try:
+                  lt = datetime.datetime.fromisoformat(last_attempt.replace('Z', '+00:00'))
+                  return (datetime.datetime.now(datetime.timezone.utc) - lt).total_seconds() > 7200
+              except Exception:
+                  return True
+
+          for pkg in ('cosmoscloud', 'snapraid', 'mergerfs'):
+              cur_v = cur[pkg].get('version', '')
+              up_v = up[pkg]
+              status = cur[pkg].get('status', '')
+              last_attempt = cur[pkg].get('last_attempt', '')
+              if cur_v != up_v:
+                  triggered.append(pkg)
+                  bump.append(pkg)
+                  summary.append(f'{pkg}: {cur_v or "(none)"} -> {up_v}')
+              elif FORCE:
+                  triggered.append(pkg)
+                  summary.append(f'{pkg}: forced')
+              elif want_retry(pkg, status, last_attempt):
+                  triggered.append(pkg)
+                  summary.append(f'{pkg}: retry (last build failed)')
+
+          if triggered:
+              with open('triggered.json', 'w') as f:
+                  json.dump(triggered, f)
+          with open('bump.json', 'w') as f:
+              json.dump(bump, f)
+          with open('summary.txt', 'w') as f:
+              f.write('\n'.join(summary) if summary else 'no updates')
+
+          # Persist the planned new versions so the next step can use them.
+          with open('new_versions.json', 'w') as f:
+              json.dump({pkg: up[pkg] for pkg in triggered}, f)
+
+          print('triggered:', triggered)
+          print('bump:', bump)
+          print('summary:')
+          for s in summary: print(' ', s)
+          EOF
+          echo "triggered=$(python3 -c 'import json, os; print(",".join(json.load(open("triggered.json"))) if os.path.exists("triggered.json") else "")') " >> "$GITHUB_OUTPUT"
+          echo "summary=$(cat summary.txt)" >> "$GITHUB_OUTPUT"
+
+      - name: Bump versions.json + package Makefiles
+        if: steps.cmp.outputs.triggered != ''
+        run: |
+          set -euo pipefail
+          python3 - <<'EOF'
+          import json, datetime, re, urllib.request, hashlib, os
+
+          with open('versions.json') as f: v = json.load(f)
+          with open('bump.json') as f: bump = json.load(f)
+          with open('new_versions.json') as f: newv = json.load(f)
+          with open('triggered.json') as f: triggered = json.load(f)
+          now = datetime.datetime.now(datetime.timezone.utc).isoformat()
+
+          # Update versions.json to the new upstream versions (no status
+          # change yet; the build will mark success/failure). Record
+          # last_attempt for every triggered package (version bump or retry).
+          for pkg, ver in newv.items():
+              v[pkg]['version'] = ver
+          for pkg in triggered:
+              v[pkg]['last_attempt'] = now
+          with open('versions.json', 'w') as f:
+              json.dump(v, f, indent=2); f.write('\n')
+
+          def bump_makefile(path, newver, ver_regex):
+              with open(path) as f: text = f.read()
+              m = re.search(ver_regex, text)
+              if not m:
+                  raise SystemExit(f'!! could not locate version in {path}')
+              newtext = text[:m.start(1)] + newver + text[m.end(1):]
+              with open(path, 'w') as f: f.write(newtext)
+              print(f'bumped {path} -> {newver}')
+
+          def bump_release(path):
+              # Used for retries: bump PKG_RELEASE (r1 -> r2) so a commit
+              # lands under package/<pkg>/** and re-triggers the build even
+              # when the upstream version is unchanged.
+              with open(path) as f: text = f.read()
+              m = re.search(r'(PKG_RELEASE\s*:?=\s*)(\d+)', text)
+              if not m:
+                  raise SystemExit(f'!! could not locate PKG_RELEASE in {path}')
+              newrel = str(int(m.group(2)) + 1)
+              text = text[:m.start(2)] + newrel + text[m.end(2):]
+              with open(path, 'w') as f: f.write(text)
+              print(f'bumped {path} PKG_RELEASE -> {newrel}')
+
+          if 'cosmoscloud' in bump:
+              # PKG_VERSION must be apk-valid: strip any -unstableNNN suffix.
+              bump_makefile('package/cosmoscloud/Makefile',
+                            re.sub(r'-.*$', '', newv['cosmoscloud']),
+                            r'(PKG_VERSION\s*:?=\s*)([^\s#]+)')
+          elif 'cosmoscloud' in triggered:
+              bump_release('package/cosmoscloud/Makefile')
+          if 'snapraid' in bump:
+              bump_makefile('package/snapraid/Makefile', newv['snapraid'],
+                            r'(PKG_VERSION\s*:?=\s*)([^\s#]+)')
+              # Update PKG_HASH to the new tarball's sha256.
+              url = f"https://github.com/amadvance/snapraid/releases/download/v{newv['snapraid']}/snapraid-{newv['snapraid']}.tar.gz"
+              print('fetching', url)
+              with urllib.request.urlopen(url, timeout=180) as r:
+                  digest = hashlib.sha256(r.read()).hexdigest()
+              with open('package/snapraid/Makefile') as f: text = f.read()
+              m = re.search(r'(PKG_HASH\s*:?=\s*)([0-9a-f]{64})', text)
+              if not m:
+                  raise SystemExit('!! could not locate PKG_HASH in snapraid Makefile')
+              text = text[:m.start(2)] + digest + text[m.end(2):]
+              with open('package/snapraid/Makefile', 'w') as f: f.write(text)
+              print('bumped snapraid PKG_HASH ->', digest)
+          elif 'snapraid' in triggered:
+              bump_release('package/snapraid/Makefile')
+          if 'mergerfs' in bump:
+              bump_makefile('package/mergerfs/Makefile', newv['mergerfs'],
+                            r'(PKG_VERSION\s*:?=\s*)([^\s#]+)')
+          elif 'mergerfs' in triggered:
+              bump_release('package/mergerfs/Makefile')
+          EOF
+
+      - name: Commit & push trigger
+        if: steps.cmp.outputs.triggered != ''
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add versions.json package/cosmoscloud/Makefile package/snapraid/Makefile package/mergerfs/Makefile
+          git commit -m "chore(feed): bump upstream versions & trigger builds
+
+          Triggered by upstream version check.
+          ${{ steps.cmp.outputs.summary }}"
+          git push origin HEAD:main
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "::group::Decision summary"
+          cat summary.txt
+          echo "::endgroup::"

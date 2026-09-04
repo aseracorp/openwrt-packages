@@ -1,0 +1,187 @@
+# =============================================================================
+# publish.yml — merge each per-package build's .apk files into the shared
+# per-architecture feed: regenerate the signed packages.adb indexes, upload
+# the .apks to the GitHub Release (tag = OpenWrt release), and push the tiny
+# index+pubkey to gh-pages.
+#
+# Runs via workflow_run whenever ANY of the three build workflows
+# (build-cosmoscloud / build-snapraid / build-mergerfs) completes. It pulls
+# the latest successful .apk artifact set from each of the three build
+# workflows and merges them into the per-arch indexes, so the feed always
+# reflects the newest version of every package regardless of which one was
+# just (re)built.
+# =============================================================================
+
+name: Publish feed
+
+on:
+  workflow_run:
+    workflows:
+      - Build cosmoscloud
+      - Build snapraid
+      - Build mergerfs
+    types:
+      - completed
+
+permissions:
+  contents: write
+
+concurrency:
+  group: openwrt-feed-publish
+  cancel-in-progress: false
+
+env:
+  OPENWRT_RELEASE: 25.12.5
+  KEYID: aede713bafd53a86        # matches keys/aede713bafd53a86.pub (EC P-256)
+  RELEASE_TAG: 25.12.5
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install jq
+        run: sudo apt-get install -y jq
+
+      - name: Checkout feed (for keys)
+        uses: actions/checkout@v4
+        with:
+          path: feed
+
+      # The `apk` indexer lives in the OpenWrt SDK's host staging dir. Rather
+      # than download a whole SDK per publish, fetch the standalone apk-tools
+      # static binary (the same one OpenWrt SDKs ship) into /usr/local/bin.
+      - name: Install apk-tools (for mkndx)
+        run: |
+          set -euo pipefail
+          curl -fsSL "https://gitlab.alpinelinux.org/api/v4/projects/5/packages/generic/apk-tools/v2.14.4/x86_64/apk.static" -o /tmp/apk.static || true
+          if [ ! -s /tmp/apk.static ]; then
+            echo "static apk download failed; will try to grab from an SDK in build step"
+          else
+            chmod +x /tmp/apk.static
+            sudo cp /tmp/apk.static /usr/local/bin/apk
+          fi
+          apk --version 2>/dev/null || true
+
+      - name: Download latest apks from all three build workflows
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/all-apks
+          for WF in "Build cosmoscloud" "Build snapraid" "Build mergerfs"; do
+            echo "=== $WF ==="
+            RUN_ID="$(gh run list --workflow "$WF" --json databaseId,status,conclusion --limit 10 --jq '[.[] | select(.status=="completed" and .conclusion=="success")][0].databaseId')"
+            if [ -z "$RUN_ID" ] || [ "$RUN_ID" = "null" ]; then
+              echo "  no successful run found — skipping (keeps existing apks for this pkg)"
+              continue
+            fi
+            echo "  downloading from run $RUN_ID"
+            rm -rf /tmp/dl && mkdir -p /tmp/dl
+            gh run download "$RUN_ID" -D /tmp/dl >/dev/null 2>&1 || { echo "  download failed"; continue; }
+            find /tmp/dl -type f -name '*.apk' -exec cp -n {} /tmp/all-apks/ \; || true
+          done
+          echo "=== final apk set ($(ls /tmp/all-apks | wc -l) files) ==="
+          ls -la /tmp/all-apks
+
+      - name: Verify signing key identity
+        run: |
+          set -euo pipefail
+          if [ -n "${APK_SIGNING_KEY:-}" ]; then
+            echo "$APK_SIGNING_KEY" | base64 -d > /tmp/sign-key.pem
+            chmod 600 /tmp/sign-key.pem
+            GOT="$(openssl ec -in /tmp/sign-key.pem -pubout 2>/dev/null | openssl pkey -pubin -in /dev/stdin -pubout -outform DER 2>/dev/null | tail -c 65 | openssl dgst -sha512 2>/dev/null | awk '{print $2}' | cut -c1-16)"
+            [ "$GOT" = "${{ env.KEYID }}" ] || { echo "ERROR: signing key keyid=$GOT != ${{ env.KEYID }}"; exit 1; }
+            echo "signing key OK"
+          else
+            echo "no APK_SIGNING_KEY — publishing unsigned"
+          fi
+
+      - name: Generate signed per-arch indexes
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/stage && mkdir -p /tmp/stage
+          rm -rf /tmp/emptyroot && mkdir -p /tmp/emptyroot
+          if ! command -v apk >/dev/null 2>&1; then
+            echo "ERROR: apk-tools not available for mkndx" >&2
+            exit 1
+          fi
+          # Group apks by architecture (filename <name>_<version>_<arch>.apk).
+          for f in /tmp/all-apks/*.apk; do
+            [ -f "$f" ] || continue
+            b="$(basename "$f")"; b="${b%.apk}"
+            arch="${b##*_}"
+            mkdir -p "/tmp/arch/$arch"
+            cp "$f" "/tmp/arch/$arch/"
+          done
+          for archdir in /tmp/arch/*/; do
+            arch="$(basename "$archdir")"
+            echo "== arch $arch =="
+            mkdir -p "/tmp/stage/$arch"
+            rm -f "/tmp/stage/$arch/packages.adb"
+            SPEC="https://github.com/aseracorp/openwrt-packages/releases/download/${{ env.RELEASE_TAG }}/\${name}_\${version}_\${arch}.apk"
+            if [ -n "${APK_SIGNING_KEY:-}" ]; then
+              apk mkndx --root /tmp/emptyroot --allow-untrusted \
+                --sign /tmp/sign-key.pem \
+                --pkgname-spec "$SPEC" --output "/tmp/stage/$arch/packages.adb" \
+                /tmp/arch/$arch/*.apk 2>&1 | tail -4
+            else
+              apk mkndx --root /tmp/emptyroot --allow-untrusted \
+                --pkgname-spec "$SPEC" --output "/tmp/stage/$arch/packages.adb" \
+                /tmp/arch/$arch/*.apk 2>&1 | tail -4
+            fi
+            cp "$GITHUB_WORKSPACE/feed/keys/${{ env.KEYID }}.pub" "/tmp/stage/$arch/" || true
+            ls -la "/tmp/stage/$arch/"
+          done
+
+      - name: Upload apks to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.RELEASE_TAG }}
+          name: "openwrt-packages feed (${{ env.RELEASE_TAG }})"
+          body: |
+            Prebuilt OpenWrt apk packages for SnapRAID + Cosmos Cloud.
+            Per-architecture index: https://aseracorp.github.io/openwrt-packages/<arch>/packages.adb
+          files: /tmp/all-apks/*
+          fail_on_unmatched_files: false
+
+      - name: Checkout gh-pages branch
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: site
+          persist-credentials: true
+
+      - name: Assemble gh-pages (indexes + pubkey only)
+        run: |
+          set -euo pipefail
+          cd site
+          VER="${{ env.RELEASE_TAG }}"
+          if [ -d "$VER" ]; then rm -rf "$VER"; fi
+          mkdir -p "$VER"
+          cd ..
+          for arch in /tmp/stage/*/; do
+            an="$(basename "$arch")"
+            [ -f "$arch/packages.adb" ] || continue
+            mkdir -p "site/$VER/$an"
+            cp "$arch/packages.adb" "site/$VER/$an/"
+            cp "$arch"/*.pub "site/$VER/$an/" 2>/dev/null || true
+            # Mirror current version as default "latest" feed.
+            mkdir -p "site/$an"
+            cp "$arch/packages.adb" "site/$an/"
+            cp "$arch"/*.pub "site/$an/" 2>/dev/null || true
+          done
+          # Update cosmos version marker.
+          if ls /tmp/all-apks/cosmoscloud_* >/dev/null 2>&1; then
+            CV="$(ls /tmp/all-apks/cosmoscloud_* | head -1 | sed -E 's/.*cosmoscloud_([^_]+)_.*/\1/')"
+            echo "$CV" > site/latest-cosmos
+            echo "$CV" > "site/$VER/cosmos-version"
+          fi
+          cd site
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if ! git diff --cached --quiet; then
+            git commit -q -m "Publish feed indexes (${{ env.RELEASE_TAG }})"
+            git push origin gh-pages
+            echo "gh-pages pushed"
+          else
+            echo "no change"
+          fi

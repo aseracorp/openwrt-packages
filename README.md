@@ -15,7 +15,10 @@ packages it depends on, for release 25.12.5. Assembled / cross-compiled for
 - 🔗 **mergerfs** — union filesystem, repackaged from prebuilt static binaries;
   pulled in as a Cosmos dependency on archs where it's built.
 - 🗂️ apk format (OpenWrt **25.1+**); one directory per architecture.
-- 🤖 Auto-built & re-published on push / schedule / manual dispatch.
+- 🤖 Auto-built & re-published: a **schedule-driven upstream version check**
+  watches the releases of Cosmos Cloud, SnapRAID and mergerfs, and each package
+  is built in its own workflow. Publishing merges everything into the shared
+  per-architecture feed.
 
 ---
 
@@ -175,22 +178,51 @@ make package/cosmoscloud/compile package/snapraid/compile package/mergerfs/compi
 
 ## CI / release workflow
 
-`.github/workflows/build.yml`:
-- Repackages Cosmos Cloud (prebuilt) and mergerfs (prebuilt static binaries)
-  and builds SnapRAID from source, for every supported architecture, with the
-  matching OpenWrt **25.12.5** SDK.
-- **Storage split (keeps gh-pages tiny):**
-  - The large `.apk` binaries are uploaded to a GitHub **Release**
-    (`https://github.com/aseracorp/openwrt-packages/releases/download/<tag>/`),
-    one asset per package+arch: `<name>_<version>_<arch>.apk`.
-  - The per-architecture index `packages.adb` (just a few KB) is generated with
-    an **absolute pkgname-spec** pointing at that release, so `apk` fetches the
-    packages straight from the release. Only the tiny index + public key are
-    committed to `gh-pages` — no package blobs live in the git repo.
+The build is split into **per-package workflows** (plus a shared publisher), so
+an upstream update only rebuilds the package that changed — not all 35
+architectures for all 3 packages.
+
+Workflows:
+
+- **`Upstream version check`** (`.github/workflows/version-check.yml`) — runs on
+  a schedule (every 4h) and on manual dispatch. Queries the latest releases of
+  Cosmos Cloud (`azukaar/Cosmos-Server`), SnapRAID (`amadvance/snapraid`) and
+  mergerfs (`trapexit/mergerfs`). If a package has a newer upstream version than
+  what `versions.json` records (or the last build failed and enough time has
+  passed), it bumps `versions.json` + the package Makefile and **pushes directly
+  to `main`**, which automatically triggers that package's build workflow.
+- **`Build cosmoscloud`** (`.github/workflows/build-cosmoscloud.yml`) — repacks
+  the official prebuilt Cosmos Cloud archive (amd64/arm64 from
+  `aseracorp/Cosmos-Server`, the legacy archs 386/armv6/armv7/riscv64 from
+  `aseracorp/Cosmos-Server-legacyArchs`) for every architecture that has one.
+  Builds snapraid too (it's a Cosmos dependency).
+- **`Build snapraid`** (`.github/workflows/build-snapraid.yml`) — compiles
+  SnapRAID from source for **every** supported OpenWrt architecture.
+- **`Build mergerfs`** (`.github/workflows/build-mergerfs.yml`) — repacks the
+  official static mergerfs binaries for the architectures that have them.
+- **`Publish feed`** (`.github/workflows/publish.yml`) — triggered by
+  `workflow_run` whenever ANY build workflow completes. Merges the latest
+  successful `.apk` set from each package, regenerates the signed per-arch
+  `packages.adb` indexes, uploads the `.apks` to a GitHub **Release**, and
+  pushes the tiny indexes + public key to `gh-pages`.
+
+**Storage split (keeps gh-pages tiny):**
+
+- The large `.apk` binaries are uploaded to a GitHub **Release**
+  (`https://github.com/aseracorp/openwrt-packages/releases/download/<tag>/`),
+  one asset per package+arch: `<name>_<version>_<arch>.apk`.
+- The per-architecture index `packages.adb` (just a few KB) is generated with an
+  **absolute pkgname-spec** pointing at that release, so `apk` fetches the
+  packages straight from the release. Only the tiny index + public key are
+  committed to `gh-pages` — no package blobs live in the git repo.
 - The whole feed is **signed** (apk EC P-256), so installs verify without
   `--allow-untrusted`.
 - Cosmos version and the release tag (OpenWrt version) are configurable via
-  `workflow_dispatch` (defaults `0.23.0-unstable013` / `25.12.5`).
+  `workflow_dispatch` (defaults from `versions.json` / `25.12.5`).
+
+`versions.json` at the repo root records, per package, the upstream version the
+feed was last built at and whether that build succeeded — the version-check uses
+it to decide what needs (re)building.
 
 ### Setting up package signing (OpenWrt apk uses an **EC P-256** key, not usign)
 
