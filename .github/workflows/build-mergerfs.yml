@@ -25,6 +25,7 @@ on:
 
 permissions:
   contents: write
+  actions: write
 
 concurrency:
   group: build-mergerfs
@@ -194,3 +195,16 @@ jobs:
           else
             echo "no change"
           fi
+
+      - name: Trigger publish
+        if: needs.build.result == 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          # workflow_run-based publish does not fire for workflow_dispatch-
+          # dispatched builds, so dispatch it explicitly after a successful
+          # build. publish.yml serializes via concurrency and always merges
+          # the latest successful artifacts of all three build workflows.
+          echo "Dispatching Publish feed"
+          gh workflow run "Publish feed" --repo ${{ github.repository }} --ref main
