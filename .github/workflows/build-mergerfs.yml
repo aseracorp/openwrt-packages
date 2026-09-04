@@ -61,9 +61,6 @@ jobs:
           - sdk_target: bcm27xx/bcm2712
             id: bcm2712
             suffix: arm64
-          - sdk_target: bcm27xx/bcm2708
-            id: bcm2708
-            suffix: armv6
           - sdk_target: mediatek/mt7629
             id: mt7629
             suffix: armhf
