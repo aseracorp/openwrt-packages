@@ -155,7 +155,7 @@ jobs:
       - name: Upload mergerfs apks
         uses: actions/upload-artifact@v4
         with:
-          name: mergerfs-apks
+          name: mergerfs-apks-${{ matrix.id }}
           path: /tmp/assets/*.apk
           if-no-files-found: error
 
