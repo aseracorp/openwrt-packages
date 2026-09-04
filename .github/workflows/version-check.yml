@@ -28,7 +28,7 @@ on:
   workflow_dispatch:
     inputs:
       force:
-        description: 'Re-check all packages and re-trigger any that are new or failed'
+        description: 'Force rebuild all packages (bump PKG_RELEASE so every build re-runs), even if upstream is unchanged'
         type: boolean
         default: false
 
@@ -93,6 +93,8 @@ jobs:
 
       - name: Compare & decide triggers
         id: cmp
+        env:
+          FORCE: ${{ github.event.inputs.force == 'true' }}
         run: |
           set -euo pipefail
           python3 - <<'EOF'
