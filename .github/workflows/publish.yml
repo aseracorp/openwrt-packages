@@ -40,6 +40,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ github.token }}
+      APK_SIGNING_KEY: ${{ secrets.APK_SIGNING_KEY }}
     steps:
       - name: Install jq
         run: sudo apt-get install -y jq
@@ -93,15 +94,15 @@ jobs:
       - name: Verify signing key identity
         run: |
           set -euo pipefail
-          if [ -n "${APK_SIGNING_KEY:-}" ]; then
-            echo "$APK_SIGNING_KEY" | base64 -d > /tmp/sign-key.pem
-            chmod 600 /tmp/sign-key.pem
-            GOT="$(openssl ec -in /tmp/sign-key.pem -pubout 2>/dev/null | openssl pkey -pubin -in /dev/stdin -pubout -outform DER 2>/dev/null | tail -c 65 | openssl dgst -sha512 2>/dev/null | awk '{print $2}' | cut -c1-16)"
-            [ "$GOT" = "${{ env.KEYID }}" ] || { echo "ERROR: signing key keyid=$GOT != ${{ env.KEYID }}"; exit 1; }
-            echo "signing key OK"
-          else
-            echo "no APK_SIGNING_KEY — publishing unsigned"
+          if [ -z "${APK_SIGNING_KEY:-}" ]; then
+            echo "ERROR: APK_SIGNING_KEY secret is not set; refusing to publish an unsigned feed."
+            exit 1
           fi
+          echo "$APK_SIGNING_KEY" | base64 -d > /tmp/sign-key.pem
+          chmod 600 /tmp/sign-key.pem
+          GOT="$(openssl ec -in /tmp/sign-key.pem -pubout 2>/dev/null | openssl pkey -pubin -in /dev/stdin -pubout -outform DER 2>/dev/null | tail -c 65 | openssl dgst -sha512 2>/dev/null | awk '{print $2}' | cut -c1-16)"
+          [ "$GOT" = "${{ env.KEYID }}" ] || { echo "ERROR: signing key keyid=$GOT != ${{ env.KEYID }}"; exit 1; }
+          echo "signing key OK"
 
       - name: Generate signed per-arch indexes
         run: |
@@ -124,16 +125,10 @@ jobs:
             mkdir -p "/tmp/stage/$arch"
             rm -f "/tmp/stage/$arch/packages.adb"
             SPEC="https://github.com/aseracorp/openwrt-packages/releases/download/${{ env.RELEASE_TAG }}/\${name}_\${version}_\${arch}.apk"
-            if [ -n "${APK_SIGNING_KEY:-}" ]; then
-              "$APK_BIN" mkndx --root /tmp/emptyroot --allow-untrusted \
-                --sign /tmp/sign-key.pem \
-                --pkgname-spec "$SPEC" --output "/tmp/stage/$arch/packages.adb" \
-                /tmp/arch/$arch/*.apk 2>&1 | tail -4
-            else
-              "$APK_BIN" mkndx --root /tmp/emptyroot --allow-untrusted \
-                --pkgname-spec "$SPEC" --output "/tmp/stage/$arch/packages.adb" \
-                /tmp/arch/$arch/*.apk 2>&1 | tail -4
-            fi
+            "$APK_BIN" mkndx --root /tmp/emptyroot --allow-untrusted \
+              --sign /tmp/sign-key.pem \
+              --pkgname-spec "$SPEC" --output "/tmp/stage/$arch/packages.adb" \
+              /tmp/arch/$arch/*.apk 2>&1 | tail -4
             cp "$GITHUB_WORKSPACE/feed/keys/${{ env.KEYID }}.pub" "/tmp/stage/$arch/" || true
             ls -la "/tmp/stage/$arch/"
           done
@@ -161,7 +156,8 @@ jobs:
           set -euo pipefail
           cd site
           VER="${{ env.RELEASE_TAG }}"
-          if [ -d "$VER" ]; then rm -rf "$VER"; fi
+          # Merge into the existing versioned dir; do NOT delete arches that
+          # have no new apks in this run (avoids wiping parts of the feed).
           mkdir -p "$VER"
           cd ..
           for arch in /tmp/stage/*/; do
