@@ -251,7 +251,21 @@ jobs:
 
           Triggered by upstream version check.
           ${{ steps.cmp.outputs.summary }}"
-          git push origin HEAD:main
+          # Rebase-retry: builds may push to main concurrently (status
+          # commits), so a plain push can be rejected.
+          n=0
+          while :; do
+            if git push origin HEAD:main 2>/dev/null; then
+              break
+            fi
+            n=$((n+1))
+            if [ "$n" -ge 5 ]; then
+              echo "ERROR: could not push after 5 attempts" >&2
+              exit 1
+            fi
+            echo "push rejected (concurrent update), rebasing and retrying ($n/5)"
+            git pull --rebase origin main
+          done
 
       - name: Trigger build workflows
         if: steps.cmp.outputs.triggered != ''
