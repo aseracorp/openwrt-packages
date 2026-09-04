@@ -196,7 +196,23 @@ jobs:
           git add versions.json
           if ! git diff --cached --quiet; then
             git commit -m "chore(feed): snapraid build status -> ${{ needs.build.result }}"
-            git push origin HEAD:main
+            # Push with rebase-retry: the three build workflows run in
+            # parallel and all update versions.json on main, so a plain push
+            # can be rejected (non-fast-forward). Rebase onto the latest main
+            # and retry a few times before giving up.
+            n=0
+            while :; do
+              if git push origin HEAD:main 2>/dev/null; then
+                break
+              fi
+              n=$((n+1))
+              if [ "$n" -ge 5 ]; then
+                echo "ERROR: could not push after 5 attempts" >&2
+                exit 1
+              fi
+              echo "push rejected (concurrent update), rebasing and retrying ($n/5)"
+              git pull --rebase origin main
+            done
           else
             echo "no change"
           fi

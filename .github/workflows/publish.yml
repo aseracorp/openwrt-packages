@@ -190,7 +190,22 @@ jobs:
           git add -A
           if ! git diff --cached --quiet; then
             git commit -q -m "Publish feed indexes (${{ env.RELEASE_TAG }})"
-            git push origin gh-pages
+            # Rebase-retry: a concurrent publish could advance gh-pages
+            # between our commit and push (serialized by concurrency, but be
+            # safe).
+            n=0
+            while :; do
+              if git push origin gh-pages 2>/dev/null; then
+                break
+              fi
+              n=$((n+1))
+              if [ "$n" -ge 5 ]; then
+                echo "ERROR: could not push gh-pages after 5 attempts" >&2
+                exit 1
+              fi
+              echo "push rejected, rebasing and retrying ($n/5)"
+              git pull --rebase origin gh-pages
+            done
             echo "gh-pages pushed"
           else
             echo "no change"
