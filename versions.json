@@ -1,6 +1,19 @@
 {
   "_comment": "Tracks the upstream version each package was last built at, and the outcome of its last build. The version-check workflow reads this to decide whether a package needs (re)building.",
-  "cosmoscloud": { "version": "0.23.0-unstable013", "status": "success", "built_at": "2026-08-25T00:00:00Z" },
-  "snapraid":    { "version": "14.9",               "status": "success", "built_at": "2026-07-19T00:00:00Z" },
-  "mergerfs":    { "version": "2.42.0",              "status": "success", "built_at": "2026-05-08T00:00:00Z" }
+  "cosmoscloud": {
+    "version": "0.23.4",
+    "status": "success",
+    "built_at": "2026-08-25T00:00:00Z",
+    "last_attempt": "2026-09-04T09:04:10.298015+00:00"
+  },
+  "snapraid": {
+    "version": "14.9",
+    "status": "success",
+    "built_at": "2026-07-19T00:00:00Z"
+  },
+  "mergerfs": {
+    "version": "2.42.0",
+    "status": "success",
+    "built_at": "2026-05-08T00:00:00Z"
+  }
 }
