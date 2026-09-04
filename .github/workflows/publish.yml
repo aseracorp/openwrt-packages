@@ -38,6 +38,8 @@ env:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
     steps:
       - name: Install jq
         run: sudo apt-get install -y jq
@@ -66,7 +68,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p /tmp/all-apks
-          for WF in "Build cosmoscloud" "Build snapraid" "Build mergerfs"; do
+          for WF in build-cosmoscloud.yml build-snapraid.yml build-mergerfs.yml; do
             echo "=== $WF ==="
             RUN_ID="$(gh run list --workflow "$WF" --json databaseId,status,conclusion --limit 10 --jq '[.[] | select(.status=="completed" and .conclusion=="success")][0].databaseId')"
             if [ -z "$RUN_ID" ] || [ "$RUN_ID" = "null" ]; then
