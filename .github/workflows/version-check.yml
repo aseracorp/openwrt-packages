@@ -152,7 +152,7 @@ jobs:
           print('summary:')
           for s in summary: print(' ', s)
           EOF
-          echo "triggered=$(python3 -c 'import json, os; print(",".join(json.load(open("triggered.json"))) if os.path.exists("triggered.json") else "")') " >> "$GITHUB_OUTPUT"
+          echo "triggered=$(python3 -c 'import json, os; print(",".join(json.load(open("triggered.json"))) if os.path.exists("triggered.json") else "")')" >> "$GITHUB_OUTPUT"
           echo "summary=$(cat summary.txt)" >> "$GITHUB_OUTPUT"
 
       - name: Bump versions.json + package Makefiles
@@ -183,7 +183,9 @@ jobs:
               m = re.search(ver_regex, text)
               if not m:
                   raise SystemExit(f'!! could not locate version in {path}')
-              newtext = text[:m.start(1)] + newver + text[m.end(1):]
+              # Replace ONLY the value (group 2), keeping the PKG_VERSION:=
+              # (or PKG_HASH:= etc.) prefix intact.
+              newtext = text[:m.start(2)] + newver + text[m.end(2):]
               with open(path, 'w') as f: f.write(newtext)
               print(f'bumped {path} -> {newver}')
 
