@@ -109,16 +109,22 @@ jobs:
           set -euo pipefail
           rm -rf /tmp/stage && mkdir -p /tmp/stage
           rm -rf /tmp/emptyroot && mkdir -p /tmp/emptyroot
-          # Group apks by architecture (filename <name>_<version>_<arch>.apk).
-          for f in /tmp/all-apks/*.apk; do
-            [ -f "$f" ] || continue
-            b="$(basename "$f")"; b="${b%.apk}"
-            arch="${b##*_}"
-            mkdir -p "/tmp/arch/$arch"
-            cp "$f" "/tmp/arch/$arch/"
-          done
           APK_BIN="${{ steps.apk-path.outputs.sdk_apk }}"
           [ -x "$APK_BIN" ] || { echo "ERROR: no apk binary" >&2; exit 1; }
+          # Group apks by the ACTUAL architecture from package metadata. The
+          # filename tail (${b##*_}) is NOT reliable: e.g. x86_64 apks are
+          # named <name>_<ver>_x86_64.apk -> tail is '64', aarch64_cortex-a53
+          # -> 'cortex-a53', mangling the real arch and publishing the wrong
+          # index (x86_64 feed stayed stale/unsigned). Read arch from the apk.
+          for f in /tmp/all-apks/*.apk; do
+            [ -f "$f" ] || continue
+            arch="$("$APK_BIN" adbdump "$f" 2>/dev/null | sed -n 's/^  arch: //p' | head -1)"
+            [ -n "$arch" ] || { echo "WARNING: no arch for $f — skipping"; continue; }
+            mkdir -p "/tmp/arch/$arch"
+            cp -f "$f" "/tmp/arch/$arch/"
+          done
+          echo "=== grouped arches ==="
+          for d in /tmp/arch/*/; do echo "$(basename "$d")"; done
           for archdir in /tmp/arch/*/; do
             arch="$(basename "$archdir")"
             echo "== arch $arch =="
