@@ -1,0 +1,47 @@
+# =============================================================================
+# Reusable composite action: install host deps + download/extract the OpenWrt
+# SDK for a given release/target (with caching). Mirrors the per-job setup the
+# legacy monolithic build.yml performed, factored out so each per-package
+# build workflow can reuse it.
+# =============================================================================
+
+name: OpenWrt SDK setup
+
+inputs:
+  openwrt_release:
+    description: OpenWrt release, e.g. 25.12.5
+    required: true
+  sdk_target:
+    description: OpenWrt SDK target, e.g. x86/64
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Install host build deps
+      shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y --no-install-recommends \
+          build-essential file libncurses-dev zlib1g-dev gawk gettext \
+          libssl-dev xsltproc rsync wget unzip zstd python3 jq curl bzip2 patch openssl
+
+    - name: Cache OpenWrt SDK (${{ inputs.sdk_target }})
+      id: cache-sdk
+      uses: actions/cache@v4
+      with:
+        path: /tmp/sdk.tar.zst
+        key: openwrt-sdk-${{ inputs.openwrt_release }}-${{ inputs.sdk_target }}
+
+    - name: Download & extract OpenWrt SDK
+      shell: bash
+      run: |
+        set -euo pipefail
+        if [ ! -f /tmp/sdk.tar.zst ]; then
+          BASE="https://downloads.openwrt.org/releases/${{ inputs.openwrt_release }}/targets/${{ inputs.sdk_target }}/"
+          SDK="$(curl -fsSL "$BASE" | grep -oE 'openwrt-sdk-[^"]*\.tar\.zst' | grep -v sha256 | head -1)"
+          [ -n "$SDK" ] || { echo "ERROR: no SDK for ${{ inputs.sdk_target }}"; exit 1; }
+          curl -fsSL "$BASE/$SDK" -o /tmp/sdk.tar.zst
+        fi
+        mkdir -p sdk
+        tar --zstd -xf /tmp/sdk.tar.zst -C sdk --strip-components=1
