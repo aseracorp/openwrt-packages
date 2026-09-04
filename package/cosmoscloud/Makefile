@@ -23,7 +23,7 @@ PKG_NAME:=cosmoscloud
 # prebuilt archive (e.g. 0.23.0-unstable013) is selected by the CI workflow's
 # COSMOS_VERSION env var, independent of this field.
 PKG_VERSION:=0.23.4
-PKG_RELEASE:=1
+PKG_RELEASE:=2
 
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
 
