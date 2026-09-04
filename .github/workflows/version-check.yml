@@ -155,7 +155,11 @@ jobs:
           for s in summary: print(' ', s)
           EOF
           echo "triggered=$(python3 -c 'import json, os; print(",".join(json.load(open("triggered.json"))) if os.path.exists("triggered.json") else "")')" >> "$GITHUB_OUTPUT"
-          echo "summary=$(cat summary.txt)" >> "$GITHUB_OUTPUT"
+          {
+            echo "summary<<EOF"
+            cat summary.txt
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Bump versions.json + package Makefiles
         if: steps.cmp.outputs.triggered != ''
