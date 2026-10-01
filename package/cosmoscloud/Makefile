@@ -23,7 +23,7 @@ PKG_NAME:=cosmoscloud
 # prebuilt archive (e.g. 0.23.0-unstable013) is selected by the CI workflow's
 # COSMOS_VERSION env var, independent of this field.
 PKG_VERSION:=0.23.4
-PKG_RELEASE:=6
+PKG_RELEASE:=7
 
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
 
@@ -65,17 +65,20 @@ define Package/cosmoscloud
   # (see azukaar/Cosmos-Server source, exec.* calls). Binaries are statically
   # linked, so no libc/soname deps - these are the tools it invokes at runtime:
   #   bash, curl, yq, coreutils-df (GNU df for disk stats; other coreutils are
-  #   covered by busybox), util-linux (mount/lsblk/umount), parted,
-  #   mdadm, iptables (iptables-save), fuse3-utils (fusermount), zstd.
+  #   covered by busybox), mount-utils/lsblk/blkid/fdisk/partx-utils/blockdev/
+  #   losetup (util-linux pieces the daemon shells out to; there is no single
+  #   'util-linux' package on OpenWrt), parted, mdadm, iptables (iptables-save),
+  #   fuse3-utils (fusermount), zstd.
   # Feature deps: docker/dockerd (managed apps), samba4-server (shares),
-  # avahi-nodbus-daemon (mDNS/discovery), findutils-xargs (constellation).
+  # avahi-dbus-daemon (mDNS/discovery; the default avahi-daemon variant —
+  #   the nodbus variant conflicts with it), findutils-xargs (constellation).
   # snapraid and mergerfs are CONDITIONAL deps: they are pulled in only on
   # architectures where that package is actually built for the arch
   # (CONFIG_PACKAGE_snapraid / CONFIG_PACKAGE_mergerfs), so the Cosmos package
   # does not force an uninstallable dependency where no matching arch package
   # exists. tailscale/restic remain optional extras (not hard deps).
-  DEPENDS:=+bash +curl +yq +coreutils-df +util-linux +parted +mdadm +iptables +fuse3-utils +zstd \
-	+docker +dockerd +samba4-server +avahi-nodbus-daemon +findutils-xargs \
+  DEPENDS:=+bash +curl +yq +coreutils-df +mount-utils +lsblk +blkid +fdisk +partx-utils +blockdev +losetup +parted +mdadm +iptables +fuse3-utils +zstd \
+	+docker +dockerd +samba4-server +avahi-dbus-daemon +findutils-xargs \
 	$(if $(CONFIG_PACKAGE_snapraid),+snapraid) \
 	$(if $(CONFIG_PACKAGE_mergerfs),+mergerfs)
 endef
