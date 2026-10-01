@@ -257,7 +257,11 @@ jobs:
           # ruleset ("protect branch" -> pull_request required on main) lets
           # the automated bump through. GITHUB_TOKEN (github-actions[bot]) is
           # NOT a bypass actor for that ruleset.
-          git remote set-url origin "https://x-access-token:${GH_BOT_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          # actions/checkout persists GITHUB_TOKEN as an http.extraheader which
+            # would OVERRIDE the URL credentials on push and re-authenticate
+            # as github-actions[bot] (which the ruleset does not bypass).
+            git config --unset-all "http.https://github.com/.extraheader" || true
+            git remote set-url origin "https://x-access-token:${GH_BOT_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
           # Rebase-retry: builds may push to main concurrently (status
           # commits), so a plain push can be rejected. Errors are NOT
           # suppressed so the real rejection reason is visible in logs.
