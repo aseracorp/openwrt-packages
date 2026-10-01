@@ -11,8 +11,22 @@ USE_PROCD=1
 # mirroring the upstream /opt/cosmos/start.sh flow. We run it through bash
 # so procd tracks a single foreground process (the server) for correct
 # start/stop/respawn semantics.
+#
+# On Cosmos OpenWrt images, /bin/CosmosInit (a Go binary shipped in the
+# image overlay, not part of this package) performs the first-boot
+# commissioning + config sync and then exits 0. We run it BEFORE starting
+# cosmos so the btrfs storage partition, tailscale, the custom market,
+# hostname/LuCI integration and the metrics-database relocation are all in
+# place before the server boots. When CosmosInit is not present (plain
+# cosmoscloud package on stock OpenWrt), we skip it and start directly.
 
 start_service() {
+	# commissioning + config sync (exits 0 when done; may reboot on a
+	# fresh install before the launcher ever runs)
+	if [ -x /bin/CosmosInit ]; then
+		/bin/CosmosInit || true
+	fi
+
 	procd_open_instance
 	# Launch via the upstream start flow: prepare network with cosmos-launcher,
 	# then exec the main server so procd tracks the live cosmos process.

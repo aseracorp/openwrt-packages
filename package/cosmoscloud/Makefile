@@ -102,4 +102,10 @@ define Package/cosmoscloud/install
 	touch $(1)/etc/cosmos/config.txt
 endef
 
+# NOTE: On Cosmos OpenWrt images (aseracorp/cosmos-owrt) the init.d runs
+# /bin/CosmosInit (a Go binary shipped in the image overlay, NOT in this
+# package) before starting the server. CosmosInit performs first-boot
+# commissioning + config sync and exits 0; the `[ -x /bin/CosmosInit ]`
+# guard in init.d makes the package work standalone on stock OpenWrt too.
+
 $(eval $(call BuildPackage,cosmoscloud))
