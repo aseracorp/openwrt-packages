@@ -189,6 +189,8 @@ jobs:
           git diff versions.json
 
       - name: Commit status
+        env:
+          GH_BOT_TOKEN: ${{ secrets.GH_BOT_TOKEN }}
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
@@ -196,13 +198,19 @@ jobs:
           git add versions.json
           if ! git diff --cached --quiet; then
             git commit -m "chore(feed): snapraid build status -> ${{ needs.build.result }}"
+            # Push as the org-admin bot token (GH_BOT_TOKEN) so the repo
+            # ruleset ("protect branch" -> pull_request required on main)
+            # lets the automated status commit through. GITHUB_TOKEN
+            # (github-actions[bot]) is NOT a bypass actor for that ruleset.
+            git remote set-url origin "https://x-access-token:${GH_BOT_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
             # Push with rebase-retry: the three build workflows run in
             # parallel and all update versions.json on main, so a plain push
             # can be rejected (non-fast-forward). Rebase onto the latest main
-            # and retry a few times before giving up.
+            # and retry a few times before giving up. Errors are NOT
+            # suppressed so the real rejection reason is visible in logs.
             n=0
             while :; do
-              if git push origin HEAD:main 2>/dev/null; then
+              if git push origin HEAD:main; then
                 break
               fi
               n=$((n+1))
@@ -210,7 +218,7 @@ jobs:
                 echo "ERROR: could not push after 5 attempts" >&2
                 exit 1
               fi
-              echo "push rejected (concurrent update), rebasing and retrying ($n/5)"
+              echo "push rejected, rebasing and retrying ($n/5)"
               git pull --rebase origin main
             done
           else
