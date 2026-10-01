@@ -202,6 +202,10 @@ jobs:
             # ruleset ("protect branch" -> pull_request required on main)
             # lets the automated status commit through. GITHUB_TOKEN
             # (github-actions[bot]) is NOT a bypass actor for that ruleset.
+            # actions/checkout persists GITHUB_TOKEN as an http.extraheader which
+            # would OVERRIDE the URL credentials on push and re-authenticate
+            # as github-actions[bot] (which the ruleset does not bypass).
+            git config --unset-all "http.https://github.com/.extraheader" || true
             git remote set-url origin "https://x-access-token:${GH_BOT_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
             # Push with rebase-retry: the three build workflows run in
             # parallel and all update versions.json on main, so a plain push
