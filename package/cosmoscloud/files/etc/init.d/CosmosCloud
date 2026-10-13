@@ -14,36 +14,27 @@ USE_PROCD=1
 #
 # On Cosmos OpenWrt images, /bin/CosmosInit (a Go binary shipped in the
 # image overlay, not part of this package) performs the first-boot
-# commissioning + config sync and then exits 0. We run it BEFORE starting
-# cosmos so the btrfs storage partition, tailscale, the custom market,
-# hostname/LuCI integration and the metrics-database relocation are all in
-# place before the server boots. When CosmosInit is not present (plain
+# commissioning + config sync and then exits 0. /bin/CosmosInit is part of
+# the procd command (NOT a one-shot in start_service), so it runs before
+# EVERY cosmos start, not just the first one. That matters because the setup
+# wizard restarts the server via os.Exit(0): procd respawns only the command
+# (never start_service), and the server's in-memory config rewrite drops the
+# Asera-owned keys (theme colours, resiSTORE market, Support Access cron) —
+# the pre-start CosmosInit run re-applies them. The commissioning is
+# idempotent (guarded by init.conf) and may reboot only on a fresh install,
+# before the launcher ever runs. When CosmosInit is not present (plain
 # cosmoscloud package on stock OpenWrt), we skip it and start directly.
-#
-# `CosmosInit ensure` (a one-shot config-file pass, NOT the boot-time
-# commissioning) is part of the procd command itself, right before the
-# server launches. procd respawns only the command, not start_service, so
-# putting the ensure INSIDE the command guarantees the Asera-owned config
-# keys (theme colours, resiSTORE market, Support Access cron) are re-applied
-# before EVERY server start — initial boot, crash respawn, and the setup
-# wizard's os.Exit(0) restart that wipes the config file from memory.
 
 start_service() {
-	# commissioning + config sync (exits 0 when done; may reboot on a
-	# fresh install before the launcher ever runs)
-	if [ -x /bin/CosmosInit ]; then
-		/bin/CosmosInit || true
-	fi
-
 	procd_open_instance
-	# Launch via the upstream start flow: prepare network with cosmos-launcher,
-	# then exec the main server so procd tracks the live cosmos process.
-	# `CosmosInit ensure` re-applies the Asera-owned config keys in the file
-	# right before the server reads it (see above).
-	# LEGO_DISABLE_CNAME_SUPPORT avoids local Let's Encrypt (lego) failures when
-	# the DNS challenge uses CNAME records. COSMOS_CONFIG_FOLDER keeps the
-	# persistent configuration in /etc/cosmos.
-	procd_set_param command /bin/bash -c "[ -x /bin/CosmosInit ] && /bin/CosmosInit ensure; cd /opt/cosmos && ./cosmos-launcher && exec ./cosmos"
+	# Commission + config sync, then launch via the upstream start flow:
+	# prepare network with cosmos-launcher, then exec the main server so
+	# procd tracks the live cosmos process. CosmosInit runs before EVERY
+	# cosmos start because it is inside the command that procd respawns.
+	# LEGO_DISABLE_CNAME_SUPPORT avoids local Let's Encrypt (lego) failures
+	# when the DNS challenge uses CNAME records. COSMOS_CONFIG_FOLDER keeps
+	# the persistent configuration in /etc/cosmos.
+	procd_set_param command /bin/bash -c "[ -x /bin/CosmosInit ] && /bin/CosmosInit; cd /opt/cosmos && ./cosmos-launcher && exec ./cosmos"
 	procd_set_param env COSMOS_CONFIG_FOLDER=/etc/cosmos/ LEGO_DISABLE_CNAME_SUPPORT=true
 	procd_set_param stdout 1
 	procd_set_param stderr 1
