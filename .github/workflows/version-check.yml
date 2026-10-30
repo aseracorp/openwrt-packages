@@ -61,7 +61,7 @@ jobs:
           # the 60 req/h limit of the runner egress IP pool and routinely hit
           # HTTP 403 "rate limit exceeded" (see run #217), which used to kill
           # the whole check. With GITHUB_TOKEN we get 5000 req/h per run.
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
           python3 - <<'EOF'
@@ -320,7 +320,7 @@ jobs:
       - name: Trigger build workflows
         if: steps.cmp.outputs.triggered != ''
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
           # github-actions[bot] pushes made with GITHUB_TOKEN do not re-trigger
