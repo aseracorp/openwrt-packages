@@ -1,1 +1,345 @@
-IyA9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQojIHZlcnNpb24tY2hlY2sueW1sIOKAlCB1cHN0cmVhbSB2ZXJzaW9uIHdhdGNoICsgZmFpbGVkLWJ1aWxkIHJldHJ5CiMgPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQojIFdhdGNoZXMgdGhlIHVwc3RyZWFtIHByb2plY3RzIHRoYXQgZmVlZCBhc2VyYWNvcnAvb3BlbndydC1wYWNrYWdlcyBhbmQKIyAocmUpdHJpZ2dlcnMgcGVyLXBhY2thZ2UgYnVpbGRzOgojCiMgICAqIElmIGEgcGFja2FnZSdzIHVwc3RyZWFtIGhhcyBhIG5ld2VyIHJlbGVhc2UgdGhhbiB3aGF0IHZlcnNpb25zLmpzb24KIyAgICAgcmVjb3JkcywgYnVtcCB2ZXJzaW9ucy5qc29uICgrIE1ha2VmaWxlIFBLR19WRVJTSU9OIC8gUEtHX0hBU0ggd2hlcmUKIyAgICAgYXBwbGljYWJsZSkgYW5kIHB1c2ggdG8gbWFpbi4gVGhlIHB1c2ggbGFuZHMgdW5kZXIgcGFja2FnZS88cGtnPi8qKiBzbwojICAgICB0aGUgbWF0Y2hpbmcgYnVpbGQtPHBrZz4ueW1sIHdvcmtmbG93IHN0YXJ0cyBhdXRvbWF0aWNhbGx5LgojCiMgICAqIElmIHZlcnNpb25zLmpzb24gcmVjb3JkcyB0aGUgbGFzdCBidWlsZCBvZiBhIHBhY2thZ2UgYXMgZmFpbGVkLAojICAgICByZS10cmlnZ2VyIHRoYXQgcGFja2FnZSdzIGJ1aWxkIGJ5IHB1c2hpbmcgYSByZXRyeSBtYXJrZXIgKG9ubHkgaWYgd2UKIyAgICAgaGF2ZW4ndCBhbHJlYWR5IHJldHJpZWQgcmVjZW50bHkg4oCUIDJoIGJhY2tvZmYg4oCUIHRvIGF2b2lkIHJldHJ5IHN0b3JtcykuCiMKIyBObyBzY2hlZHVsZSBmb3IgdGhlICpidWlsZCKgd29ya2Zsb3dzIOKAlCBidWlsZHMgb25seSBoYXBwZW46CiMgICAtIHdoZW4gdGhpcyBjaGVja2VyIHB1c2hlcyBhbiB1cGRhdGVkIHBhY2thZ2UgZGlyLCBvcgojICAgLSBvbiBhIGRpcmVjdCBwdXNoIHRvIHBhY2thZ2UvPHBrZz4vKiogKG1hbnVhbC9QUiksIG9yCiMgICAtIHZpYSBtYW51YWwgd29ya2Zsb3dfZGlzcGF0Y2guCiMgPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQoKbmFtZTogVXBzdHJlYW0gdmVyc2lvbiBjaGVjawoKb246CiAgc2NoZWR1bGU6CiAgICAjIEV2ZXJ5IDQgaG91cnM7IHVwc3RyZWFtcyBwdWJsaXNoIHJhcmVseSwgdGhpcyBpcyBwbGVudHkuCiAgICAtIGNyb246ICcxNyAqLzQgKiAqIConCiAgd29ya2Zsb3dfZGlzcGF0Y2g6CiAgICBpbnB1dHM6CiAgICAgIGZvcmNlOgogICAgICAgIGRlc2NyaXB0aW9uOiAnRm9yY2UgcmVidWlsZCBhbGwgcGFja2FnZXMgKGJ1bXAgUEtHX1JFTEVBU0Ugc28gZXZlcnkgYnVpbGQgcmUtcnVucyksIGV2ZW4gaWYgdXBzdHJlYW0gaXMgdW5jaGFuZ2VkJwogICAgICAgIHR5cGU6IGJvb2xlYW4KICAgICAgICBkZWZhdWx0OiBmYWxzZQoKcGVybWlzc2lvbnM6CiAgY29udGVudHM6IHdyaXRlCiAgcHVsbC1yZXF1ZXN0czogd3JpdGUKICBhY3Rpb25zOiB3cml0ZQoKY29uY3VycmVuY3k6CiAgZ3JvdXA6IHZlcnNpb24tY2hlY2sKICBjYW5jZWwtaW4tcHJvZ3Jlc3M6IGZhbHNlCgpqb2JzOgogIGNoZWNrOgogICAgcnVucy1vbjogdWJ1bnR1LWxhdGVzdAogICAgb3V0cHV0czoKICAgICAgdHJpZ2dlcmVkOiAke3sgc3RlcHMuY21wLm91dHB1dHMudHJpZ2dlcmVkIH19CiAgICAgIHN1bW1hcnk6ICR7eyBzdGVwcy5jbXAub3V0cHV0cy5zdW1tYXJ5IH19CiAgICBzdGVwczoKICAgICAgLSBuYW1lOiBDaGVja291dAogICAgICAgIHVzZXM6IGFjdGlvbnMvY2hlY2tvdXRAdjQKICAgICAgICB3aXRoOgogICAgICAgICAgcmVmOiBtYWluCiAgICAgICAgICB0b2tlbjogJHsge3NlY3JldHMuR0lUSFVCX1RPS0VOfX0KCiAgICAgIC0gbmFtZTogUXVlcnkgdXBzdHJlYW0gbGF0ZXN0IHZlcnNpb25zCiAgICAgICAgaWQ6IHVwc3RyZWFtCiAgICAgICAgZW52OgogICAgICAgICAgIyBBdXRoZW50aWNhdGUgdGhlIEdpdEh1YiBBUEkgY2FsbHM6IHVuYXV0aGVudGljYXRlZAogICAgICAgICAgIyByZXF1ZXN0cyBzaGFyZSB0aGUgNjAgcmVxL2ggbGltaXQgb2YgdGhlIHJ1bm5lciBlZ3Jlc3MKICAgICAgICAgICMgSVAgcG9vbCBhbmQgcm91dGluZWx5IGhpdCBIVFRQIDQwMyAicmF0ZSBsaW1pdCBleGNlZWRlZCIKICAgICAgICAgICMgKHNlZSBydW4gIzIxNyksIHdoaWNoIHVzZWQgdG8ga2lsbCB0aGUgd2hvbGUgY2hlY2suCiAgICAgICAgICBHSF9UT0tFTjogJHsge2dpdGh1Yi50b2tlbn19CiAgICAgICAgcnVuOiB8CiAgICAgICAgICBzZXQgLWV1byBwaXBlZmFpbAogICAgICAgICAgcHl0aG9uMyAtIDw8J0VPRicKICAgICAgICAgIGltcG9ydCBqc29uLCB1cmxsaWIucmVxdWVzdCwgdXJsbGliLmVycm9yLCBvcywgdGltZQoKICAgICAgICAgIGRlZiBnaCh1cmwsIHRyaWVzPTYpOgogICAgICAgICAgICAgICMgUmV0cnkgd2l0aCBleHBvbmVudGlhbCBiYWNrb2ZmIG9uIHJhdGUgbGltaXRzICg0MDMvNDI5KSBhbmQKICAgICAgICAgICAgICAjIHRyYW5zaWVudCBzZXJ2ZXIvbmV0d29yayBlcnJvcnMgKDUwMC81MDIvNTAzLzUwNCwgVVJMRXJyb3IpLgogICAgICAgICAgICAgICMgSG9ub3IgUmV0cnktQWZ0ZXIgd2hlbiB0aGUgQVBJIHByb3ZpZGVzIGl0LgogICAgICAgICAgICAgIGxhc3QgPSBOb25lCiAgICAgICAgICAgICAgZm9yIGkgaW4gcmFuZ2UodHJpZXMpOgogICAgICAgICAgICAgICAgICByZXEgPSB1cmxsaWIucmVxdWVzdC5SZXF1ZXN0KHVybCwgaGVhZGVycz17CiAgICAgICAgICAgICAgICAgICAgICAnQWNjZXB0JzogJ2FwcGxpY2F0aW9uL3ZuZC5naXRodWIranNvbicsCiAgICAgICAgICAgICAgICAgICAgICAnVXNlci1BZ2VudCc6ICdvcGVud3J0LWZlZWQtdmVyc2lvbmNoZWNrJywKICAgICAgICAgICAgICAgICAgfSkKICAgICAgICAgICAgICAgICAgdG9rID0gb3MuZW52aXJvbi5nZXQoJ0dIX1RPS0VOJykKICAgICAgICAgICAgICAgICAgaWYgdG9rOgogICAgICAgICAgICAgICAgICAgICAgcmVxLmFkZF9oZWFkZXIoJ0F1dGhvcml6YXRpb24nLCBmJ0JlYXJlciB7dG9rfScpCiAgICAgICAgICAgICAgICAgIHRyeToKICAgICAgICAgICAgICAgICAgICAgIHdpdGggdXJsbGliLnJlcXVlc3QudXJsb3BlbihyZXEsIHRpbWVvdXQ9MzApIGFzIHI6CiAgICAgICAgICAgICAgICAgICAgICAgICAgcmV0dXJuIGpzb24ubG9hZChyKQogICAgICAgICAgICAgICAgICBleGNlcHQgdXJsbGliLmVycm9yLkhUVFBFcnJvciBhcyBlOgogICAgICAgICAgICAgICAgICAgICAgbGFzdCA9IGUKICAgICAgICAgICAgICAgICAgICAgIGlmIGUuY29kZSBub3QgaW4gKDQwMywgNDI5LCA1MDAsIDUwMiwgNTAzLCA1MDQpOgogICAgICAgICAgICAgICAgICAgICAgICAgIHJhaXNlCiAgICAgICAgICAgICAgICAgICAgICB3YWl0ID0gbWluKDIgKiogaSAqIDUsIDEyMCkKICAgICAgICAgICAgICAgICAgICAgIGlmIGUuaGVhZGVyczoKICAgICAgICAgICAgICAgICAgICAgICAgICByYSA9IGUuaGVhZGVycy5nZXQoJ1JldHJ5LUFmdGVyJykKICAgICAgICAgICAgICAgICAgICAgICAgICBpZiByYSBhbmQgcmEuaXNkaWdpdCgpOgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICB3YWl0ID0gbWluKGludChyYSksIDEyMCkKICAgICAgICAgICAgICAgICAgICAgIHByaW50KGYnICBnaCh7dXJsfSkgLT4gSFRUUCB7ZS5jb2RlfTsgcmV0cnkgaW4ge3dhaXR9cyAoe2krMX0ve3RyaWVzfScsIGZsdXNoPVRydWUpCiAgICAgICAgICAgICAgICAgICAgICB0aW1lLnNsZWVwKHdhaXQpCiAgICAgICAgICAgICAgICAgIGV4Y2VwdCB1cmxsaWIuZXJyb3IuVVJMRXJyb3IgYXMgZToKICAgICAgICAgICAgICAgICAgICAgIGxhc3QgPSBlCiAgICAgICAgICAgICAgICAgICAgICB3YWl0ID0gbWluKDIgKiogaSAqIDUsIDEyMCkKICAgICAgICAgICAgICAgICAgICAgIHByaW50KGYnICBnaCh7dXJsfSkgLT4ge2UucmVhc29uIXJ9OyByZXRyeSBpbiB7d2FpdH1zICh7aSsxfS97dHJpZXN9JywgZmx1c2g9VHJ1ZSkKICAgICAgICAgICAgICAgICAgICAgIHRpbWUuc2xlZXAod2FpdCkKICAgICAgICAgICAgICByYWlzZSBsYXN0CgogICAgICAgICAgIyBDb3Ntb3MgQ2xvdWQ6IGxhdGVzdCAqc3RhYmxlKiByZWxlYXNlIG9uIGF6dWthYXIvQ29zbW9zLVNlcnZlci4KICAgICAgICAgIHJlbCA9IGdoKCdodHRwczovL2FwaS5naXRodWIuY29tL3JlcG9zL2F6dWthYXIvQ29zbW9zLVNlcnZlci9yZWxlYXNlcy9sYXRlc3QnKQogICAgICAgICAgY29zbW9zID0gcmVsWyd0YWdfbmFtZSddLmxzdHJpcCgndicpCiAgICAgICAgICBwcmludChmJ2Nvc21vcyBsYXRlc3Q6IHtjb3Ntb3N9JykKCiAgICAgICAgICAjIFNuYXBSQUlEOiBsYXRlc3QgcmVsZWFzZS4KICAgICAgICAgIHJlbCA9IGdoKCdodHRwczovL2FwaS5naXRodWIuY29tL3JlcG9zL2FtYWR2YW5jZS9zbmFwcmFpZC9yZWxlYXNlcy9sYXRlc3QnKQogICAgICAgICAgc25hcCA9IHJlbFsndGFnX25hbWUnXS5sc3RyaXAoJ3YnKQogICAgICAgICAgcHJpbnQoZidzbmFwcmFpZCBsYXRlc3Q6IHtzbmFwfScpCgogICAgICAgICAgIyBtZXJnZXJmczogbGF0ZXN0IHJlbGVhc2UgKHRhZ3MgaGF2ZSBubyAndyBwcmVmaXgpLgogICAgICAgICAgcmVsID0gZ2goJ2h0dHBzOi8vYXBpLmdpdGh1Yi5jb20vcmVwb3MvdHJhcGV4aXQvbWVyZ2VyZnMvcmVsZWFzZXMvbGF0ZXN0JykKICAgICAgICAgIG1mcyA9IHJlbFsndGFnX25hbWUnXS5sc3RyaXAoJ3YnKQogICAgICAgICAgcHJpbnQoZidtZXJnZXJmcyBsYXRlc3Q6IHttZnN9JykKCiAgICAgICAgICB3aXRoIG9wZW4oJ3Vwc3RyZWFtX3ZlcnNpb25zLmpzb24nLCAndycpIGFzIGY6CiAgICAgICAgICAgICAganNvbi5kdW1wKHsne2Nvc21vc2Nsb3VkJzogY29zbW9zLCAnc25hcHJhaWQnOiBzbmFwLCAnbWVyZ2VyZnMnOiBtZnN9LCBmKQogICAgICAgICAgRU9GCiAgICAgICAgICBjYXQgdXBzdHJlYW1fdmVyc2lvbnMuanNvbgoKICAgICAgLSBuYW1lOiBDb21wYXJlICYgZGVjaWRlIHRyaWdnZXJzCiAgICAgICAgaWQ6IGNtcAogICAgICAgIGVudjoKICAgICAgICAgIEZPUkNFOiAke3sgZ2l0aHViLmV2ZW50LmlucHV0cy5mb3JjZSA9PSAndHJ1ZScgfX0KICAgICAgICBydW46IHwKICAgICAgICAgIHNldCAtZXVvIHBpcGVmYWlsCiAgICAgICAgICBweXRob24zIC08PCdFT0YnCiAgICAgICAgICBpbXBvcnQganNvbiwgZGF0ZXRpbWUsIG9zLCByZQoKICAgICAgICAgIHdpdGggb3BlbigndmVyc2lvbnMuanNvbicpIGFzIGY6IGN1ciA9IGpzb24ubG9hZChmKQogICAgICAgICAgd2l0aCBvcGVuKCd1cHN0cmVhbV92ZXJzaW9ucy5qc29uJykgYXMgZjogdXAgPSBqc29uLmxvYWQoZikKCiAgICAgICAgICB0cmlnZ2VyZWQgPSBbXQogICAgICAgICAgYnVtcCA9IFtdCiAgICAgICAgICBzdW1tYXJ5ID0gW10KCiAgICAgICAgICBub3cgPSBkYXRldGltZS5kYXRldGltZS5ub3coZGF0ZXRpbWUudGltZXpvbmUudXRjKS5pc29mb3JtYXQoKQogICAgICAgICAgRk9SQ0UgPSBvcy5lbnZpcm9uLmdldCgnRk9SQ0UnKSA9PSAndHJ1ZScKCiAgICAgICAgICBkZWYgd2FudF9yZXRyeShwa2csIHN0YXR1cywgbGFzdF9hdHRlbXB0KToKICAgICAgICAgICAgICBpZiBzdGF0dXMgIT0gJ2ZhaWxlZDonCiAgICAgICAgICAgICAgICAgIHJldHVybiBGYWxzZQogICAgICAgICAgICAgIGlmIG5vdCBsYXN0X2F0dGVtcHQ6CiAgICAgICAgICAgICAgICAgIHJldHVybiBUcnVlCiAgICAgICAgICAgICAgdHJ5OgogICAgICAgICAgICAgICAgICBsdCA9IGRhdGV0aW1lLmRhdGV0aW1lLmZyb21pc29mb3JtYXQobGFzdF9hdHRlbXB0LnJlcGxhY2UoJ1onLCAnKzAwOjAwJykpCiAgICAgICAgICAgICAgICAgIHJldHVybiAoZGF0ZXRpbWUuZGF0ZXRpbWUubm93KGRhdGV0aW1lLnRpbWV6b25lLnV0YykgLSBsdCkudG90YWxfc2Vjb25kcygpID4gNzIwMAogICAgICAgICAgICAgIGV4Y2VwdCBFeGNlcHRpb246CiAgICAgICAgICAgICAgICAgIHJldHVybiBUcnVlCgogICAgICAgICAgZm9yIHBrZyBpbiAoJ2Nvc21vc2Nsb3VkJywgJ3NuYXByYWlkJywgJ21lcmdlcmZzJyk6CiAgICAgICAgICAgICAgY3VyX3YgPSBjdXJbcGtnXS5nZXQoJ3ZlcnNpb24nLCAnJykKICAgICAgICAgICAgICB1cF92ID0gdXBbcGtnXQogICAgICAgICAgICAgIHN0YXR1cyA9IGN1cltwb2ddLmdldCgnc3RhdHVzJywgJycpCiAgICAgICAgICAgICAgbGFzdF9hdHRlbXB0ID0gY3VyW3BrZ10uZ2V0KCdsYXN0X2F0dGVtcHQnLCAnJykKICAgICAgICAgICAgICBpZiBjdXJfdiAhPSB1cF92OgogICAgICAgICAgICAgICAgICB0cmlnZ2VyZWQuYXBwZW5kKHBrZykKICAgICAgICAgICAgICAgICAgYnVtcC5hcHBlbmQocGtnKQogICAgICAgICAgICAgICAgICBzdW1tYXJ5LmFwcGVuZChmJ3twa2d9OiB7Y3VyX3Ygb3IgIihub25lKSJ9IC0+IHt1cF92fScpCiAgICAgICAgICAgICAgZWxpZiBGT1JDRToKICAgICAgICAgICAgICAgICAgdHJpZ2dlcmVkLmFwcGVuZChwa2cpCiAgICAgICAgICAgICAgICAgIHN1bW1hcnkuYXBwZW5kKGYne3BrZ306IGZvcmNlZCcpCiAgICAgICAgICAgICAgZWxpZiB3YW50X3JldHJ5KHBrZywgc3RhdHVzLCBsYXN0X2F0dGVtcHQpOgogICAgICAgICAgICAgICAgICB0cmlnZ2VyZWQuYXBwZW5kKHBrZykKICAgICAgICAgICAgICAgICAgc3VtbWFyeS5hcHBlbmQoZicne3BrZ306IHJldHJ5IChsYXN0IGJ1aWxkIGZhaWxlZCknKQoKICAgICAgICAgIGlmIHRyaWdnZXJlZDoKICAgICAgICAgICAgICB3aXRoIG9wZW4oJ3RyaWdnZXJlZC5qc29uJywgJ3cnKSBhcyBmOgogICAgICAgICAgICAgICAgIGpzb24uZHVtcCh0cmlnZ2VyZWQsIGYpCiAgICAgICAgICB3aXRoIG9wZW4oJ2J1bXAuanNvbicsICd3JykgYXMgZjoKICAgICAgICAgICAgICBqc29uLmR1bXAoYnVtcCwgZikKICAgICAgICAgIHdpdGggb3Blbignc3VtbWFyeS50eHQnLCAndycpIGFzIGY6CiAgICAgICAgICAgICAgZi53cml0ZSgnXG4nLmpvaW4oc3VtbWFyeSkgaWYgc3VtbWFyeSBlbHNlICdubyB1cGRhdGVzJykKCiAgICAgICAgICAjIFBlcnNpc3QgdGhlIHBsYW5uZWQgbmV3IHZlcnNpb25zIHNvIHRoZSBuZXh0IHN0ZXAgY2FuIHVzZSB0aGVtLgogICAgICAgICAgd2l0aCBvcGVuKCduZXdfdmVyc2lvbnMuanNvbicsICd3JykgYXMgZjoKICAgICAgICAgICAgICBqc29uLmR1bXAoe3BrZzogdXBbcGtnXSBmb3IgcGtnIGluIHRyaWdnZXJlZH0sIGYpCgogICAgICAgICAgcHJpbnQoJ3RyaWdnZXJlZDonLCB0cmlnZ2VyZWQpCiAgICAgICAgICBwcmludCgnYnVtcDonLCBidW1wKQogICAgICAgICAgcHJpbnQoJ3N1bW1hcnk6JykKICAgICAgICAgIGZvciBzIGluIHN1bW1hcnk6IHByaW50KCcgJywgcykKICAgICAgICAgIEVPRgogICAgICAgICAgZWNobyAidHJpZ2dlcmVkPSQocHl0aG9uMyAtYyAnaW1wb3J0IGpzb24sIG9zOyBwcmludCgiLCIuam9pbihqc29uLmxvYWQob3BlbigidHJpZ2dlcmVkLmpzb24iKSkpIGlmIG9zLnBhdGguZXhpc3RzKCJ0cmlnZ2VyZWQuanNvbiIpIGVsc2UgIiIpJykiID4+ICIke0dJVEhVQl9PVVRQVVR9IgogICAgICAgICAgIyBzaW5nbGUtbGluZSBzdW1tYXJ5IGZvciBHSVRIVUJfT1VUUFVUIChtdWx0aS1saW5lIGRlbGltaXRlciBmb3JtCiAgICAgICAgICAjIGZhaWxzIG9uIHRoZSBydW5uZXI6ICJJbnZhbGlkIHZhbHVlLiBNYXRjaGluZyBkZWxpbWl0ZXIgbm90IGZvdW5kIikKICAgICAgICAgIHByaW50ZiAnc3VtbWFyeT0nID4+ICIkR0lUSFVCX09VVFBVVCIKICAgICAgICAgIHRyICdcbicgJ3wnIDwgc3VtbWFyeS50eHQgfCBzZWQgJ3MvfCQvLycgPj4gIiRHSVRIVUJfT1VUUFVUIgogICAgICAgICAgZWNobyA+PiAiJEdJVEhVQl9PVVRQVVRICgogICAgICAtIG5hbWU6IEJ1bXAgdmVyc2lvbnMuanNvbiArIHBhY2thZ2UgTWFrZWZpbGVzCiAgICAgICAgaWY6IHN0ZXBzLmNtcC5vdXRwdXRzLnRyaWdnZXJlZCAhPSAnJwogICAgICAgIHJ1bjogfAogICAgICAgICAgc2V0IC1ldW8gcGlwZWZhaWwKICAgICAgICAgIHB5dGhvbjMgLSA8PCdFT0YnCiAgICAgICAgICBpbXBvcnQganNvbiwgZGF0ZXRpbWUsIHJlLCB1cmxsaWIucmVxdWVzdCwgaGFzaGxpYiwgb3MsIHRpbWUKCiAgICAgICAgICB3aXRoIG9wZW4oJ3ZlcnNpb25zLmpzb24nKSBhcyBmOiB2ID0ganNvbi5sb2FkKGYpCiAgICAgICAgICB3aXRoIG9wZW4oJ2J1bXAuanNvbicpIGFzIGY6IGJ1bXAgPSBqc29uLmxvYWQoZikKICAgICAgICAgIHdpdGggb3BlbignbmV3X3ZlcnNpb25zLmpzb24nKSBhcyBmOiBuZXd2ID0ganNvbi5sb2FkKGYpCiAgICAgICAgICB3aXRoIG9wZW4oJ3RyaWdnZXJlZC5qc29uJykgYXMgZjogdHJpZ2dlcmVkID0ganNvbi5sb2FkKGYpCiAgICAgICAgICBub3cgPSBkYXRldGltZS5kYXRldGltZS5ub3coZGF0ZXRpbWUudGltZXpvbmUudXRjKS5pc29mb3JtYXQoKQoKICAgICAgICAgICMgVXBkYXRlIHZlcnNpb25zLmpzb24gdG8gdGhlIG5ldyB1cHN0cmVhbSB2ZXJzaW9ucyAobm8gc3RhdHVzCiAgICAgICAgICAjIGNoYW5nZSB5ZXQ7IHRoZSBidWlsZCB3aWxsIG1hcmsgc3VjY2Vzcy9mYWlsdXJlKS4gUmVjb3JkCiAgICAgICAgICAjIGxhc3RfYXR0ZW1wdCBmb3IgZXZlcnkgdHJpZ2dlcmVkIHBhY2thZ2UgKHZlcnNpb24gYnVtcCBvciByZXRyeSkuCiAgICAgICAgICBmb3IgcGtnLCB2ZXIgaW4gbmV3di5pdGVtcygpOgogICAgICAgICAgICAgIHZbcGtnXVsndmVyc2lvbiddID0gdmVyCiAgICAgICAgICBmb3IgcGtnIGluIHRyaWdnZXJlZDoKICAgICAgICAgICAgICB2W3BrZ11bJ2xhc3RfYXR0ZW1wdCddID0gbm93CiAgICAgICAgICB3aXRoIG9wZW4oJ3ZlcnNpb25zLmpzb24nLCAndycpIGFzIGY6CiAgICAgICAgICAgICAganNvbi5kdW1wKHYsIGYsIGluZGVudD0yKTsgZi53cml0ZSgnXG4nKQoKICAgICAgICAgIGRlZiBidW1wX21ha2VmaWxlKHBhdGgsIG5ld3ZlciwgdmVyX3JlZ2V4KToKICAgICAgICAgICAgICB3aXRoIG9wZW4ocGF0aCkgYXMgZjogdGV4dCA9IGYucmVhZCgpCiAgICAgICAgICAgICAgbSA9IHJlLnNlYXJjaCh2ZXJfcmVnZXgsIHRleHQpCiAgICAgICAgICAgICAgaWYgbm90IG06CiAgICAgICAgICAgICAgICAgIHJhaXNlIFN5c3RlbUV4aXQoZichISBjb3VsZCBub3QgbG9jYXRlIHZlcnNpb24gaW4ge3BhdGh9JykKICAgICAgICAgICAgICAjIFJlcGxhY2UgT05MWSB0aGUgdmFsdWUgKGdyb3VwIDIpLCBrZWVwaW5nIHRoZSBQS0dfVkVSU0lPTjo9CiAgICAgICAgICAgICAgIyAob3IgUEtHX0hBU0g6PSBldGMuKSBwcmVmaXggaW50YWN0LgogICAgICAgICAgICAgIG5ld3RleHQgPSB0ZXh0WzptLnN0YXJ0KDIpXSArIG5ld3ZlciArIHRleHRbbS5lbmQoMik6XQogICAgICAgICAgICAgIHdpdGggb3BlbihwYXRoLCAndycpIGFzIGY6IGYud3JpdGUobmV3dGV4dCkKICAgICAgICAgICAgICBwcmludChmJ2J1bXBlZCB7cGF0aH0gLT4ge25ld3Zlcn0nKQoKICAgICAgICAgIGRlZiBidW1wX3JlbGVhc2UocGF0aCk6CiAgICAgICAgICAgICAgIyBVc2VkIGZvciByZXRyaWVzOiBidW1wIFBLR19SRUxFQVNFIChyMSAtPiByMikgc28gYSBjb21taXQKICAgICAgICAgICAgICAjIGxhbmRzIHVuZGVyIHBhY2thZ2UvPHBrZz4vKiogYW5kIHJlLXRyaWdnZXJzIHRoZSBidWlsZCBldmVuCiAgICAgICAgICAgICAgIyB3aGVuIHRoZSB1cHN0cmVhbSB2ZXJzaW9uIGlzIHVuY2hhbmdlZC4KICAgICAgICAgICAgICB3aXRoIG9wZW4ocGF0aCkgYXMgZjogdGV4dCA9IGYucmVhZCgpCiAgICAgICAgICAgICAgbSA9IHJlLnNlYXJjaChyJyhQS0dfUkVMRUFTRVxzKjo/PVxzKikoXGQrKScsIHRleHQpCiAgICAgICAgICAgICAgaWYgbm90IG06CiAgICAgICAgICAgICAgICAgIHJhaXNlIFN5c3RlbUV4aXQoZichISBjb3VsZCBub3QgbG9jYXRlIFBLR19SRUxFQVNFIGluIHtwYXRofScpCiAgICAgICAgICAgICAgbmV3cmVsID0gc3RyKGludChtLmdyb3VwKDIpKSArIDEpCiAgICAgICAgICAgICAgdGV4dCA9IHRleHRbOm0uc3RhcnQoMildICsgbmV3cmVsICsgdGV4dFttLmVuZCgyKTpdCiAgICAgICAgICAgICAgd2l0aCBvcGVuKHBhdGgsICd3JykgYXMgZjogZi53cml0ZSh0ZXh0KQogICAgICAgICAgICAgIHByaW50KGYnYnVtcGVkIHtwYXRofSBQS0dfUkVMRUFTRSAtPiB7bmV3cmVsfScpCgogICAgICAgICAgIGlmICdjb3Ntb3NjbG91ZCcgaW4gYnVtcDoKICAgICAgICAgICAgICAgIyBQS0dfVkVSU0lPTiBtdXN0IGJlIGFway12YWxpZDogc3RyaXAgYW55IC11bnN0YWJsZU5OTiBzdWZmaXguCiAgICAgICAgICAgICAgIGJ1bXBfbWFrZWZpbGUoJ3BhY2thZ2UvY29zbW9zY2xvdWQvTWFrZWZpbGUnLAogICAgICAgICAgICAgICAgICAgICAgICAgICAgIHJlLnN1YihyJy0uKiQnLCAnJywgbmV3dlsnY29zbW9zY2xvdWQnXSksCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgcicnKFBLR19WRVJTSU9OXHMqOj89XHMqKShbXlxzI10rKScpCiAgICAgICAgICAgZWxpZiAnY29zbW9zY2xvdWQnIGluIHRyaWdnZXJlZDoKICAgICAgICAgICAgICAgYnVtcF9yZWxlYXNlKCdwYWNrYWdlL2Nvc21vc2Nsb3VkL01ha2VmaWxlJykKICAgICAgICAgICBpZiAnc25hcHJhaWQnIGluIGJ1bXA6CiAgICAgICAgICAgICAgIGJ1bXBfbWFrZWZpbGUoJ3BhY2thZ2Uvc25hcHJhaWQvTWFrZWZpbGUnLCBuZXd2WydzbmFwcmFpZCddLAogICAgICAgICAgICAgICAgICAgICAgICAgICAgIHInKFBLR19WRVJTSU9OXHMqOj89XHMqKShbXlxzI10rKScpCiAgICAgICAgICAgICAgICMgVXBkYXRlIFBLR19IQVNIIHRvIHRoZSBuZXcgdGFyYmFsbCdzIHNoYTI1Ni4KICAgICAgICAgICAgICAgdXJsID0gZiJodHRwczovL2dpdGh1Yi5jb20vYW1hZHZhbmNlL3NuYXByYWlkL3JlbGVhc2VzL2Rvd25sb2FkL3Z7bmV3dlsnc25hcHJhaWQnXX0vc25hcHJhaWQte25ld3ZbJ3NuYXByYWlkJ119LnRhci5neiIKICAgICAgICAgICAgICAgcHJpbnQoJ2ZldGNoaW5nJywgdXJsKQogICAgICAgICAgICAgICBkaWdlc3QgPSBOb25lCiAgICAgICAgICAgICAgIGZvciBpIGluIHJhbmdlKDQpOgogICAgICAgICAgICAgICAgICAgIHRyeToKICAgICAgICAgICAgICAgICAgICAgICAgd2l0aCB1cmxsaWIucmVxdWVzdC51cmxvcGVuKHVybCwgdGltZW91dD0xODApIGFzIHI6CiAgICAgICAgICAgICAgICAgICAgICAgICAgICBkaWdlc3QgPSBoYXNoaWxpYi5zaGEyNTYoci5yZWFkKCkpLmhleGRpZ2VzdCgpCiAgICAgICAgICAgICAgICAgICAgICAgIGJyZWFrCiAgICAgICAgICAgICAgICAgICAgZXhjZXB0IEV4Y2VwdGlvbiBhcyBlOgogICAgICAgICAgICAgICAgICAgICAgICBpZiBpID09IDM6CiAgICAgICAgICAgICAgICAgICAgICAgICAgICByYWlzZQogICAgICAgICAgICAgICAgICAgICAgICBwcmludChmJyAgZmV0Y2ggZmFpbGVkICghe3JhfSksIHJldHJ5IHtpKzF9LzMnLCBmbHVzaD1UcnVlKQogICAgICAgICAgICAgICAgICAgICAgICB0aW1lLnNsZWVwKDUgKiAoaSArIDEpKQogICAgICAgICAgICAgICB3aXRoIG9wZW4oJ3BhY2thZ2Uvc25hcHJhaWQvTWFrZWZpbGUnKSBhcyBmOiB0ZXh0ID0gZi5yZWFkKCkKICAgICAgICAgICAgICAgbSA9IHJlLnNlYXJjaChyJyhQS0dfSEFTSFxTXHMqOj89XHMqKShbMC05YS1mXXs2NH0pJywgdGV4dCkKICAgICAgICAgICAgICAgaWYgbm90IG06CiAgICAgICAgICAgICAgICAgICByYWlzZSBNYWtlZmlsZUVycm9yKCchISBjb3VsZCBub3QgbG9jYXRlIFBLR19IQVNIIGluIHNuYXByYWlkIE1ha2VmaWxlJykKICAgICAgICAgICAgICAgdGV4dCA9IHRleHRbOm0uc3RhcnQoMildICsgZGlnZXN0ICsgdGV4dFttLmVuZCgyKTpdCiAgICAgICAgICAgICAgIHdpdGggb3BlbigncGFja2FnZS9zbmFwcmFpZC9NYWtlZmlsZScsICd3JykgYXMgZjogZi53cml0ZSh0ZXh0KQogICAgICAgICAgICAgICBwcmludCgnYnVtcGVkIHNuYXByYWlkIFBLR19IQVNIIC0+JywgZGlnZXN0KQogICAgICAgICAgIGVsaWYgJ3NuYXByYWlkJyBpbiB0cmlnZ2VyZWQ6CiAgICAgICAgICAgICAgIGJ1bXBfcmVsZWFzZSgncGFja2FnZS9zbmFwcmFpZC9NYWtlZmlsZScpCiAgICAgICAgICAgaWYgJ21lcmdlcmZzJyBpbiBidW1wOgogICAgICAgICAgICAgICBidW1wX21ha2VmaWxlKCdwYWNrYWdlL21lcmdlcmZzL01ha2VmaWxlJywgbmV3dlsnbWVyZ2VyZnMnXSwKICAgICAgICAgICAgICAgICAgICAgICAgICAgIHInKFBLR19WRVJTSU9OXHMqOj89XHMqKShbXlxzI10rKScpCiAgICAgICAgICAgZWxpZiAnbWVyZ2VyZnMnIGluIHRyaWdnZXJlZDoKICAgICAgICAgICAgICAgYnVtcF9yZWxlYXNlKCdwYWNrYWdlL21lcmdlcmZzL01ha2VmaWxlJykKICAgICAgICAgICBFT0YKCiAgICAgIC0gbmFtZTogQ29tbWl0ICYgcHVzaCB0cmlnZ2VyCiAgICAgICAgaWY6IHN0ZXBzLmNtcC5vdXRwdXRzLnRyaWdnZXJlZCAhPSAnJwogICAgICAgIGVudjoKICAgICAgICAgIEdIX0JPVF9UT0tFTjogJHsge3NlY3JldHMuR0hfQk9UX1RPS0VOfX0KICAgICAgICBydW46IHwKICAgICAgICAgIHNldCAtZXVvIHBpcGVmYWlsCiAgICAgICAgICBnaXQgY29uZmlnIHVzZXIubmFtZSAiZ2l0aHViLWFjdGlvbnNbYm90XSIKICAgICAgICAgIGdpdCBjb25maWcgdXNlci5lbWFpbCAiNDE4OTgyODIrZ2l0aHViLWFjdGlvbnNbYm90XUB1c2Vycy5ub3JlcGx5LmdpdGh1Yi5jb20iCiAgICAgICAgICBnaXQgYWRkIHZlcnNpb25zLmpzb24gcGFja2FnZS9jb3Ntb3NjbG91ZC9NYWtlZmlsZSBwYWNrYWdlL3NuYXByYWlkL01ha2VmaWxlIHBhY2thZ2UvbWVyZ2VyZnMvTWFrZWZpbGUKICAgICAgICAgIGdpdCBjb21taXQgLW0gImNob3JlKGZlZWQpOiBidW1wIHVwc3RyZWFtIHZlcnNpb25zICYgdHJpZ2dlciBidWlsZHMiCgogICAgICAgICAgVHJpZ2dlcmVkIGJ5IHVwc3RyZWFtIHZlcnNpb24gY2hlY2suCiAgICAgICAgICAke3sgc3RlcHMuY21wLm91dHB1dHMuc3VtbWFyeSB9fSIKICAgICAgICAgICMgUHVzaCBhcyB0aGUgb3JnLWFkbWluIGJvdCB0b2tlbiAoR0hfQk9UX1RPS0VOKSBzbyB0aGUgcmVwb3NpdG9yeQogICAgICAgICAgIyBydWxlc2V0ICgicHJvdGVjdCBicmFuY2giIC0+IHB1bGxfcmVxdWVzdCByZXF1aXJlZCBvbiBtYWluKSBsZXRzCiAgICAgICAgICAjIHRoZSBhdXRvbWF0ZWQgYnVtcCB0aHJvdWdoLiBHSVRIVUJfVE9LRU4gKGdpdGh1Yi1hY3Rpb25zW2JvdF0pIGlzCiAgICAgICAgICAjIE5PVCBhIGJ5cGFzcyBhY3RvciBmb3IgdGhhdCBydWxlc2V0LgogICAgICAgICAgIyBhY3Rpb25zL2NoZWNrb3V0IHBlcnNpc3RzIEdJVEhVQl9UT0tFTiBhcyBhbiBodHRwLmV4dHJhaGVhZGVyIHdoaWNoCiAgICAgICAgICAgICMgd291bGQgT1ZFUlJJREUgdGhlIFVSTCBjcmVkZW50aWFscyBvbiBwdXNoIGFuZCByZS1hdXRoZW50aWNhdGUKICAgICAgICAgICAgIyBhcyBnaXRodWItYWN0aW9uc1tib3RdICh3aGljaCB0aGUgcnVsZXNldCBkb2VzIG5vdCBieXBhc3MpLgogICAgICAgICAgICBnaXQgY29uZmlnIC0tdW5zZXQtYWxsICJodHRwLmh0dHBzOi8vZ2l0aHViLmNvbS8uZXh0cmFoZWFkZXIiIHx8IHRydWUKICAgICAgICAgICAgZ2l0IHJlbW90ZSBzZXQtdXJsIG9yaWdpbiAiaHR0cHM6Ly94LWFjY2Vzcy10b2tlbjoke0dIX0JPVF9UT0tFTn1AZ2l0aHViLmNvbS8ke0dJVEhVQl9SRVBPU0lUT1JZfS5naXQiCiAgICAgICAgICAjIFJlYmFzZS1yZXRyeTogYnVpbGRzIG1heSBwdXNoIHRvIG1haW4gY29uY3VycmVudGx5IChzdGF0dXMKICAgICAgICAgICMgY29tbWl0cyksIHNvIGEgcGxhaW4gcHVzaCBjYW4gYmUgcmVqZWN0ZWQuIEVycm9ycyBhcmUgTk9UCiAgICAgICAgICAjIHN1cHByZXNzZWQgc28gdGhlIHJlYWwgcmVqZWN0aW9uIHJlYXNvbiBpcyB2aXNpYmxlIGluIGxvZ3MuCiAgICAgICAgICBuPTAKICAgICAgICAgIHdoaWxlIDo7IGRvCiAgICAgICAgICAgIGlmIGdpdCBwdXNoIG9yaWdpbiBIRUFEOm1haW47IHRoZW4KICAgICAgICAgICAgICBicmVhawogICAgICAgICAgICBmaQogICAgICAgICAgICBuPSQoKG4rMSkpCiAgICAgICAgICAgIGlmIFsgIiRuIiAtZ2UgNSBdOyB0aGVuCiAgICAgICAgICAgICAgZWNobyAiRVJST1I6IGNvdWxkIG5vdCBwdXNoIGFmdGVyIDUgYXR0ZW1wdHMiID4mMgogICAgICAgICAgICAgIGV4aXQgMQogICAgICAgICAgICBmaQogICAgICAgICAgICBlY2hvICJwdXNoIHJlamVjdGVkLCByZWJhc2luZyBhbmQgcmV0cnlpbmcgKCRuLzUpIgogICAgICAgICAgICBnaXQgcHVsbCAtLXJlYmFzZSBvcmlnaW4gbWFpbgogICAgICAgICAgZG9uZQoKICAgICAgLSBuYW1lOiBUcmlnZ2VyIGJ1aWxkIHdvcmtmbG93cwogICAgICAgIGlmOiBzdGVwcy5jbXAub3V0cHV0cy50cmlnZ2dlcmVkICE9ICcnCiAgICAgICAgZW52OgogICAgICAgICAgR0hfVE9LRU46ICR7eyBnaXRodWIudG9rZW59fQogICAgICAgIHJ1bjogfAogICAgICAgICAgc2V0IC1ldW8gcGlwZWZhaWwKICAgICAgICAgICMgZ2l0aHViLWFjdGlvbnNbYm90XSBwdXNoZXMgbWFkZSB3aXRoIEdJVEhVQl9UT0tFTiBkbyBub3QgcmUtdHJpZ2dlcgogICAgICAgICAgIyB0aGUgcHVzaC1iYXNlZCBidWlsZCB3b3JrZmxvd3MgKHJlY3Vyc2l2ZS13b3JrZmxvdyBwcmV2ZW50aW9uKS4gU28gd2UKICAgICAgICAgICMgZXhwbGljaXRseSBkaXNwYXRjaCBlYWNoIHRyaWdnZXJlZCBwYWNrYWdlIGJ1aWxkIHRvIGd1YXJhbnRlZWQgdGhleSBydW4uCiAgICAgICAgICBmb3IgcGtnIGluICQoY2F0IHRyaWdnZXJlZC5qc29uIHwgcHl0aG9uMyAtYyAiaW1wb3J0IGpzb24sc3lzOyBwcmludCgnICcuam9pbihqc29uLmxvYWQoc3lzLnN0ZGluKSkpIik7IGRvCiAgICAgICAgICAgIGNhc2UgIiRwa2ciIGluCiAgICAgICAgICAgICAgY29zbW9zY2xvdWQpIHdrZj0iYnVpbGQtY29zbW9zY2xvdWQueW1sIiA7OwogICAgICAgICAgICAgIHNuYXByYWlkKSAgICB3a2Y9ImJ1aWxkLXNuYXByYWlkLnltbCIgOzsKICAgICAgICAgICAgICBtZXJnZXJmcykgICAgd2tmPSJidWlsZC1tZXJnZXJmcy55bWwiIDs7CiAgICAgICAgICAgICAgKikgY29udGludWUgOzsKICAgICAgICAgICAgZXNhYwogICAgICAgICAgICBlY2hvICJEaXNwYXRjaGluZyAkcGtnICgkd2tmKSIKICAgICAgICAgICAgZ2ggd29ya2Zsb3cgcnVuICIkd2tmIiAtLXJlcG8gJHt7IGdpdGh1Yi5yZXBvc2l0b3J5IH19IC0tcmVmIG1haW4KICAgICAgICAgIGRvbmUKCiAgICAgIC0gbmFtZTogU3VtbWFyeQogICAgICAgIGlmOiBhbHdheXMoKQogICAgICAgIHJ1bjogfAogICAgICAgICAgZWNobyAiOjpncm91cDo6RGVjaXNpb24gc3VtbWFyeSIKICAgICAgICAgIGNhdCBzdW1tYXJ5LnR4dAogICAgICAgICAgZWNobyAiOjplbmRncm91cDo6Ig==
+# =============================================================================
+# version-check.yml — upstream version watch + failed-build retry
+# =============================================================================
+# Watches the upstream projects that feed aseracorp/openwrt-packages and
+# (re)triggers per-package builds:
+#
+#   * If a package's upstream has a newer release than what versions.json
+#     records, bump versions.json (+ Makefile PKG_VERSION / PKG_HASH where
+#     applicable) and push to main. The push lands under package/<pkg>/** so
+#     the matching build-<pkg>.yml workflow starts automatically.
+#
+#   * If versions.json records the last build of a package as failed,
+#     re-trigger that package's build by pushing a retry marker (only if we
+#     haven't already retried recently — 2h backoff — to avoid retry storms).
+#
+# No schedule for the *build* workflows — builds only happen:
+#   - when this checker pushes an updated package dir, or
+#   - on a direct push to package/<pkg>/** (manual/PR), or
+#   - via manual workflow_dispatch.
+# =============================================================================
+
+name: Upstream version check
+
+on:
+  schedule:
+    # Every 4 hours; upstreams publish rarely, this is plenty.
+    - cron: '17 */4 * * *'
+  workflow_dispatch:
+    inputs:
+      force:
+        description: 'Force rebuild all packages (bump PKG_RELEASE so every build re-runs), even if upstream is unchanged'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  pull-requests: write
+  actions: write
+
+concurrency:
+  group: version-check
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    outputs:
+      triggered: ${{ steps.cmp.outputs.triggered }}
+      summary: ${{ steps.cmp.outputs.summary }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Query upstream latest versions
+        id: upstream
+        env:
+          # Authenticate the GitHub API calls: unauthenticated requests share
+          # the 60 req/h limit of the runner egress IP pool and routinely hit
+          # HTTP 403 "rate limit exceeded" (see run #217), which used to kill
+          # the whole check. With GITHUB_TOKEN we get 5000 req/h per run.
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          python3 - <<'EOF'
+          import json, urllib.request, urllib.error, os, time
+
+          def gh(url, tries=6):
+              # Retry with exponential backoff on rate limits (403/429) and
+              # transient server/network errors (500/502/503/504, URLError).
+              # Honor Retry-After when the API provides it.
+              last = None
+              for i in range(tries):
+                  req = urllib.request.Request(url, headers={
+                      'Accept': 'application/vnd.github+json',
+                      'User-Agent': 'openwrt-feed-versioncheck',
+                  })
+                  tok = os.environ.get('GH_TOKEN')
+                  if tok:
+                      req.add_header('Authorization', f'Bearer {tok}')
+                  try:
+                      with urllib.request.urlopen(req, timeout=30) as r:
+                          return json.load(r)
+                  except urllib.error.HTTPError as e:
+                      last = e
+                      if e.code not in (403, 429, 500, 502, 503, 504):
+                          raise
+                      wait = min(2 ** i * 5, 120)
+                      if e.headers:
+                          ra = e.headers.get('Retry-After')
+                          if ra and ra.isdigit():
+                              wait = min(int(ra), 120)
+                      print(f'  gh({url}) -> HTTP {e.code}; retry in {wait}s ({i+1}/{tries})', flush=True)
+                      time.sleep(wait)
+                  except urllib.error.URLError as e:
+                      last = e
+                      wait = min(2 ** i * 5, 120)
+                      print(f'  gh({url}) -> {e.reason!r}; retry in {wait}s ({i+1}/{tries})', flush=True)
+                      time.sleep(wait)
+              raise last
+
+          # Cosmos Cloud: latest *stable* release on azukaar/Cosmos-Server.
+          rel = gh('https://api.github.com/repos/azukaar/Cosmos-Server/releases/latest')
+          cosmos = rel['tag_name'].lstrip('v')
+          print(f'cosmos latest: {cosmos}')
+
+          # SnapRAID: latest release.
+          rel = gh('https://api.github.com/repos/amadvance/snapraid/releases/latest')
+          snap = rel['tag_name'].lstrip('v')
+          print(f'snapraid latest: {snap}')
+
+          # mergerfs: latest release (tags have no 'v' prefix).
+          rel = gh('https://api.github.com/repos/trapexit/mergerfs/releases/latest')
+          mfs = rel['tag_name'].lstrip('v')
+          print(f'mergerfs latest: {mfs}')
+
+          with open('upstream_versions.json', 'w') as f:
+              json.dump({'cosmoscloud': cosmos, 'snapraid': snap, 'mergerfs': mfs}, f)
+          EOF
+          cat upstream_versions.json
+
+      - name: Compare & decide triggers
+        id: cmp
+        env:
+          FORCE: ${{ github.event.inputs.force == 'true' }}
+        run: |
+          set -euo pipefail
+          python3 - <<'EOF'
+          import json, datetime, os, re
+
+          with open('versions.json') as f: cur = json.load(f)
+          with open('upstream_versions.json') as f: up = json.load(f)
+
+          triggered = []
+          bump = []
+          summary = []
+
+          now = datetime.datetime.now(datetime.timezone.utc).isoformat()
+          FORCE = os.environ.get('FORCE') == 'true'
+
+          def want_retry(pkg, status, last_attempt):
+              if status != 'failed':
+                  return False
+              if not last_attempt:
+                  return True
+              try:
+                  lt = datetime.datetime.fromisoformat(last_attempt.replace('Z', '+00:00'))
+                  return (datetime.datetime.now(datetime.timezone.utc) - lt).total_seconds() > 7200
+              except Exception:
+                  return True
+
+          for pkg in ('cosmoscloud', 'snapraid', 'mergerfs'):
+              cur_v = cur[pkg].get('version', '')
+              up_v = up[pkg]
+              status = cur[pkg].get('status', '')
+              last_attempt = cur[pkg].get('last_attempt', '')
+              if cur_v != up_v:
+                  triggered.append(pkg)
+                  bump.append(pkg)
+                  summary.append(f'{pkg}: {cur_v or "(none)"} -> {up_v}')
+              elif FORCE:
+                  triggered.append(pkg)
+                  summary.append(f'{pkg}: forced')
+              elif want_retry(pkg, status, last_attempt):
+                  triggered.append(pkg)
+                  summary.append(f'{pkg}: retry (last build failed)')
+
+          if triggered:
+              with open('triggered.json', 'w') as f:
+                  json.dump(triggered, f)
+          with open('bump.json', 'w') as f:
+              json.dump(bump, f)
+          with open('summary.txt', 'w') as f:
+              f.write('\n'.join(summary) if summary else 'no updates')
+
+          # Persist the planned new versions so the next step can use them.
+          with open('new_versions.json', 'w') as f:
+              json.dump({pkg: up[pkg] for pkg in triggered}, f)
+
+          print('triggered:', triggered)
+          print('bump:', bump)
+          print('summary:')
+          for s in summary: print(' ', s)
+          EOF
+          echo "triggered=$(python3 -c 'import json, os; print(",".join(json.load(open("triggered.json"))) if os.path.exists("triggered.json") else "")')" >> "$GITHUB_OUTPUT"
+          # single-line summary for GITHUB_OUTPUT (multi-line delimiter form
+          # fails on the runner: "Invalid value. Matching delimiter not found")
+          printf 'summary=' >> "$GITHUB_OUTPUT"
+          tr '\n' '|' < summary.txt | sed 's/|$//' >> "$GITHUB_OUTPUT"
+          echo >> "$GITHUB_OUTPUT"
+
+      - name: Bump versions.json + package Makefiles
+        if: steps.cmp.outputs.triggered != ''
+        run: |
+          set -euo pipefail
+          python3 - <<'EOF'
+          import json, datetime, re, urllib.request, hashlib, os, time
+
+          with open('versions.json') as f: v = json.load(f)
+          with open('bump.json') as f: bump = json.load(f)
+          with open('new_versions.json') as f: newv = json.load(f)
+          with open('triggered.json') as f: triggered = json.load(f)
+          now = datetime.datetime.now(datetime.timezone.utc).isoformat()
+
+          # Update versions.json to the new upstream versions (no status
+          # change yet; the build will mark success/failure). Record
+          # last_attempt for every triggered package (version bump or retry).
+          for pkg, ver in newv.items():
+              v[pkg]['version'] = ver
+          for pkg in triggered:
+              v[pkg]['last_attempt'] = now
+          with open('versions.json', 'w') as f:
+              json.dump(v, f, indent=2); f.write('\n')
+
+          def bump_makefile(path, newver, ver_regex):
+              with open(path) as f: text = f.read()
+              m = re.search(ver_regex, text)
+              if not m:
+                  raise SystemExit(f'!! could not locate version in {path}')
+              # Replace ONLY the value (group 2), keeping the PKG_VERSION:=
+              # (or PKG_HASH:= etc.) prefix intact.
+              newtext = text[:m.start(2)] + newver + text[m.end(2):]
+              with open(path, 'w') as f: f.write(newtext)
+              print(f'bumped {path} -> {newver}')
+
+          def bump_release(path):
+              # Used for retries: bump PKG_RELEASE (r1 -> r2) so a commit
+              # lands under package/<pkg>/** and re-triggers the build even
+              # when the upstream version is unchanged.
+              with open(path) as f: text = f.read()
+              m = re.search(r'(PKG_RELEASE\s*:?=\s*)(\d+)', text)
+              if not m:
+                  raise SystemExit(f'!! could not locate PKG_RELEASE in {path}')
+              newrel = str(int(m.group(2)) + 1)
+              text = text[:m.start(2)] + newrel + text[m.end(2):]
+              with open(path, 'w') as f: f.write(text)
+              print(f'bumped {path} PKG_RELEASE -> {newrel}')
+
+          if 'cosmoscloud' in bump:
+              # PKG_VERSION must be apk-valid: strip any -unstableNNN suffix.
+              bump_makefile('package/cosmoscloud/Makefile',
+                            re.sub(r'-.*$', '', newv['cosmoscloud']),
+                            r'(PKG_VERSION\s*:?=\s*)([^\s#]+)')
+          elif 'cosmoscloud' in triggered:
+              bump_release('package/cosmoscloud/Makefile')
+          if 'snapraid' in bump:
+              bump_makefile('package/snapraid/Makefile', newv['snapraid'],
+                            r'(PKG_VERSION\s*:?=\s*)([^\s#]+)')
+              # Update PKG_HASH to the new tarball's sha256.
+              url = f"https://github.com/amadvance/snapraid/releases/download/v{newv['snapraid']}/snapraid-{newv['snapraid']}.tar.gz"
+              print('fetching', url)
+              digest = None
+              for i in range(4):
+                  try:
+                      with urllib.request.urlopen(url, timeout=180) as r:
+                          digest = hashlib.sha256(r.read()).hexdigest()
+                      break
+                  except Exception as e:
+                      if i == 3:
+                          raise
+                      print(f'  fetch failed ({e!r}), retry {i+1}/3', flush=True)
+                      time.sleep(5 * (i + 1))
+              with open('package/snapraid/Makefile') as f: text = f.read()
+              m = re.search(r'(PKG_HASH\s*:?=\s*)([0-9a-f]{64})', text)
+              if not m:
+                  raise SystemExit('!! could not locate PKG_HASH in snapraid Makefile')
+              text = text[:m.start(2)] + digest + text[m.end(2):]
+              with open('package/snapraid/Makefile', 'w') as f: f.write(text)
+              print('bumped snapraid PKG_HASH ->', digest)
+          elif 'snapraid' in triggered:
+              bump_release('package/snapraid/Makefile')
+          if 'mergerfs' in bump:
+              bump_makefile('package/mergerfs/Makefile', newv['mergerfs'],
+                            r'(PKG_VERSION\s*:?=\s*)([^\s#]+)')
+          elif 'mergerfs' in triggered:
+              bump_release('package/mergerfs/Makefile')
+          EOF
+
+      - name: Commit & push trigger
+        if: steps.cmp.outputs.triggered != ''
+        env:
+          GH_BOT_TOKEN: ${{ secrets.GH_BOT_TOKEN }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add versions.json package/cosmoscloud/Makefile package/snapraid/Makefile package/mergerfs/Makefile
+          git commit -m "chore(feed): bump upstream versions & trigger builds
+
+          Triggered by upstream version check.
+          ${{ steps.cmp.outputs.summary }}"
+          # Push as the org-admin bot token (GH_BOT_TOKEN) so the repository
+          # ruleset ("protect branch" -> pull_request required on main) lets
+          # the automated bump through. GITHUB_TOKEN (github-actions[bot]) is
+          # NOT a bypass actor for that ruleset.
+          # actions/checkout persists GITHUB_TOKEN as an http.extraheader which
+            # would OVERRIDE the URL credentials on push and re-authenticate
+            # as github-actions[bot] (which the ruleset does not bypass).
+            git config --unset-all "http.https://github.com/.extraheader" || true
+            git remote set-url origin "https://x-access-token:${GH_BOT_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          # Rebase-retry: builds may push to main concurrently (status
+          # commits), so a plain push can be rejected. Errors are NOT
+          # suppressed so the real rejection reason is visible in logs.
+          n=0
+          while :; do
+            if git push origin HEAD:main; then
+              break
+            fi
+            n=$((n+1))
+            if [ "$n" -ge 5 ]; then
+              echo "ERROR: could not push after 5 attempts" >&2
+              exit 1
+            fi
+            echo "push rejected, rebasing and retrying ($n/5)"
+            git pull --rebase origin main
+          done
+
+      - name: Trigger build workflows
+        if: steps.cmp.outputs.triggered != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          # github-actions[bot] pushes made with GITHUB_TOKEN do not re-trigger
+          # the push-based build workflows (recursive-workflow prevention). So we
+          # explicitly dispatch each triggered package build to guarantee they run.
+          for pkg in $(cat triggered.json | python3 -c "import json,sys; print(' '.join(json.load(sys.stdin)))"); do
+            case "$pkg" in
+              cosmoscloud) wkf="build-cosmoscloud.yml" ;;
+              snapraid)    wkf="build-snapraid.yml" ;;
+              mergerfs)    wkf="build-mergerfs.yml" ;;
+              *) continue ;;
+            esac
+            echo "Dispatching $pkg ($wkf)"
+            gh workflow run "$wkf" --repo ${{ github.repository }} --ref main
+          done
+
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "::group::Decision summary"
+          cat summary.txt
