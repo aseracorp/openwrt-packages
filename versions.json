@@ -2,8 +2,8 @@
   "_comment": "Tracks the upstream version each package was last built at, and the outcome of its last build. The version-check workflow reads this to decide whether a package needs (re)building.",
   "cosmoscloud": {
     "version": "0.24.0",
-    "status": "success",
-    "built_at": "2026-10-13T06:55:51.974787+00:00",
+    "status": "failure",
+    "built_at": "2026-11-12T16:51:03.466138+00:00",
     "last_attempt": "2026-11-12T16:48:49.818588+00:00"
   },
   "snapraid": {
