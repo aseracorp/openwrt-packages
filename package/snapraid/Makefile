@@ -8,12 +8,12 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=snapraid
-PKG_VERSION:=15.1
+PKG_VERSION:=15.2
 PKG_RELEASE:=6
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=https://github.com/amadvance/snapraid/releases/download/v$(PKG_VERSION)
-PKG_HASH:=fb2d6a9cf9c8ea30c6962f4a48764dc9012fe61d6e23f40a8d959dadea02278b
+PKG_HASH:=0740169f66c506c29846a5aef57d2b11ffe5c354c5bb0ba260f2b5f328f985c5
 
 PKG_MAINTAINER:=aseracorp <noreply@aseracorp.dev>
 PKG_LICENSE:=GPL-3.0-or-later
